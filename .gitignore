@@ -1,0 +1,9 @@
+provider.tf
+terraform.tfvars
+creds
+.terraform
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.pem
+
