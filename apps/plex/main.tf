@@ -1,17 +1,22 @@
+locals {
+  node_ip = "192.168.1.40"
+}
+
+
 resource "proxmox_virtual_environment_container" "ubuntu_container" {
   description = "Plex"
   node_name = var.proxmox_node_name
 
   initialization {
-    hostname = "terraform-provider-proxmox-ubuntu-container"
+    hostname = "plex"
 
     dns {
-      domain = "plex.home.arpa"
+      domain = "home.arpa"
       servers = ["192.168.1.253"]
     }
     ip_config {
       ipv4 {
-        address = "192.168.1.199/24"
+        address = "${local.node_ip}/24"
         gateway = "192.168.1.254"
       }
     }
@@ -77,9 +82,10 @@ resource "local_file" "private_key" {
 }
 
 resource "ansible_host" "ubuntu_host" {
-  name = "192.168.1.199"
+  name = "plex"
   groups = ["plex"]
   variables = {
+    ansible_host = local.node_ip
     ansible_user = "root"
     ansible_ssh_private_key_file = local_file.private_key.filename
     ansible_password = random_password.ubuntu_container_password.result
