@@ -1,5 +1,5 @@
-- name: My first play
-  hosts: all
+- name: Plex
+  hosts: plex
   tasks:
    - name: Update and install dependencies
      ansible.builtin.apt:
