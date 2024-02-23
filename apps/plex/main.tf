@@ -69,16 +69,6 @@ output "ubuntu_container_password" {
   sensitive = true
 }
 
-# output "ubuntu_container_private_key" {
-#   value     = tls_private_key.ubuntu_container_key.private_key_pem
-#   sensitive = true
-# }
-# 
-# output "ubuntu_container_public_key" {
-#   value = tls_private_key.ubuntu_container_key.public_key_openssh
-# }
-#
-
 # TODO : just use a global key file for terraform
 resource "local_file" "private_key" {
   content = tls_private_key.ubuntu_container_key.private_key_pem
@@ -88,24 +78,11 @@ resource "local_file" "private_key" {
 
 resource "ansible_host" "ubuntu_host" {
   name = "192.168.1.199"
+  groups = ["plex"]
   variables = {
     ansible_user = "root"
     ansible_ssh_private_key_file = local_file.private_key.filename
     ansible_password = random_password.ubuntu_container_password.result
     ansible_ssh_common_args = "-o StrictHostKeyChecking=no"
   }
-}
-resource "ansible_playbook" "plex" {
-  playbook = "playbook.yml"
-  name = "192.168.1.199"
-  replayable = true
-  extra_vars = {
-    ansible_user = "root"
-    ansible_ssh_private_key_file = local_file.private_key.filename
-    ansible_password = random_password.ubuntu_container_password.result
-    ansible_ssh_common_args = "\"-o StrictHostKeyChecking=no\""  # <----- Quotes must be secaped
-    ansible_check_mode = true  # <--- needed to get decent log output on fail
-  }
-  verbosity = 3
-  ignore_playbook_failure = true  # <--- needed otherwise fails before outputting log
 }
