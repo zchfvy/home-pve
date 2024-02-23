@@ -1,34 +1,20 @@
 - name: My first play
   hosts: all
   tasks:
-   - name: Ping my hosts
-     ansible.builtin.ping:
-
-   - name: Print message
-     ansible.builtin.debug:
-      msg: Hello world
    - name: Update and install dependencies
      ansible.builtin.apt:
        pkg:
          - curl
          - gnupg
        state: present
-   - name: Check plex key is installed
-     stat:
-       path: /usr/share/keyrings/plex.gpg
-     register: file_plex_key
-   - name: Add plex key
-     when: not file_plex_key.stat.exists
-     ansible.builtin.shell: |
-       curl -sS https://downloads.plex.tv/plex-keys/PlexSign.key | gpg --dearmor | tee /usr/share/keyrings/plex.gpg > /dev/null 
-   - name: Check plex repository is installed
-     stat:
-       path: /etc/apt/sources.list.d/plexmediaserver.list
-     register: file_plex_repository
    - name: Add plex repository
-     when: not file_plex_repository.stat.exists
-     ansible.builtin.shell: |
-       echo "deb [signed-by=/usr/share/keyrings/plex.gpg] https://downloads.plex.tv/repo/deb public main" > /etc/apt/sources.list.d/plexmediaserver.list
+     ansible.builtin.deb822_repository:
+       name: plexmediaserver
+       types: deb
+       uris: "https://downloads.plex.tv/repo/deb"
+       suites: public
+       components: main
+       signed_by: "https://downloads.plex.tv/plex-keys/PlexSign.key"
    - name: Run plex install
      ansible.builtin.apt:
        pkg: plexmediaserver
@@ -38,11 +24,6 @@
      ansible.builtin.apt:
        pkg: nfs-common
        state: present
-   - name: Ensure mount point exists
-     ansible.builtin.file:
-       path: /mnt/media
-       state: directory
-       mode: '0755'
    - name: Mount media share
      ansible.posix.mount:
        src: oddesy.home.arpa:/mnt/sixtb/media
