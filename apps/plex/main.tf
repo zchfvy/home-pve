@@ -42,6 +42,10 @@ resource "proxmox_virtual_environment_container" "ubuntu_container" {
     datastore_id = "local-lvm"
   }
 
+  memory {
+    dedicated = 1024
+  }
+
   features {
     // Required to allow mounting
     mount = ["nfs"]
