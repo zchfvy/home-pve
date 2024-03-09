@@ -1,7 +1,12 @@
 terraform {
     extra_arguments "use_tfvars" {
-        commands = ["apply", "plan"]
+        commands = ["apply", "plan", "destroy"]
         arguments = ["-var-file=${get_parent_terragrunt_dir()}/terraform.tfvars"]
+    }
+    after_hook "ansible" {
+        commands = ["apply"]
+        execute = ["ansible-playbook", "-i", "inventory.yml", "playbook.yml"]
+        run_on_error = false
     }
 }
 
@@ -28,6 +33,8 @@ provider "proxmox" {
 }
 provider "ansible" {
 }
+
+
 
 variable "proxmox_url" {}
 variable "proxmox_node_name" {}
