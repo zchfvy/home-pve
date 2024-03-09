@@ -5,5 +5,6 @@ creds
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
+*.tfstate.*.backup
 *.pem
 
