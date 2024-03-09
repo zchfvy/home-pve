@@ -73,7 +73,7 @@ output "ubuntu_container_password" {
 # TODO : just use a global key file for terraform
 resource "local_file" "private_key" {
   content = tls_private_key.ubuntu_container_key.private_key_pem
-  filename = "${path.module}/key.pem"
+  filename = "${path.cwd}/key.pem"
   file_permission = "0600"
 }
 
