@@ -1,0 +1,66 @@
+- name: Radarr
+  hosts: radarr
+  tasks:
+   - name: Update and install dependencies
+     ansible.builtin.apt:
+       update_cache: true
+       pkg:
+         - curl
+         - sqlite3
+       state: present
+   - name: Create media group
+     ansible.builtin.group:
+       name: media
+       state: present
+   - name: Create radarr user
+     ansible.builtin.user:
+       name: radarr
+       groups: media
+   - name: Ensure NFS support is available
+     ansible.builtin.apt:
+       pkg: nfs-common
+       state: present
+   - name: Mount media share
+     ansible.posix.mount:
+       src: oddesy.home.arpa:/mnt/sixtb/media
+       path: /mnt/media
+       opts: rw,sync,hard,nolock
+       state: mounted
+       fstype: nfs
+   - name: Install radarr
+     ansible.builtin.shell: |
+       wget --content-disposition 'http://radarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64'
+       tar -xvzf Radarr*.linux*.tar.gz
+       sudo mv Radarr /opt/
+       sudo chown radarr:radarr -R /opt/Radarr
+       rm Radarr*.linux*.tar.gz
+   - name: Ensure radarr can access a data dir
+     ansible.builtin.file:
+       path: /var/lib/radarr
+       state: directory
+       owner: radarr
+       group: radarr
+   - name: Install systemd unit
+     ansible.builtin.copy:
+       dest: /etc/systemd/system/radarr.service
+       content: |
+         [Unit]
+         Description=Radarr Daemon
+         After=syslog.target network.target
+         [Service]
+         User=radarr
+         Group=media
+         Type=simple
+
+         ExecStart=/opt/Radarr/Radarr -nobrowser -data=/var/lib/radarr/
+         TimeoutStopSec=20
+         KillMode=process
+         Restart=on-failure
+         [Install]
+         WantedBy=multi-user.target
+   - name: Ensure service is running
+     ansible.builtin.systemd_service:
+       name: radarr
+       enabled: true
+       state: started
+
