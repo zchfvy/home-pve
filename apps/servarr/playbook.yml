@@ -1,24 +1,13 @@
-- name: Radarr
-  hosts: radarr
+- name: MediaShare
+  hosts: servarr
   tasks:
-   - name: Update and install dependencies
+   - name: Ensure NFS support is available
      ansible.builtin.apt:
-       update_cache: true
-       pkg:
-         - curl
-         - sqlite3
+       pkg: nfs-common
        state: present
    - name: Create media group
      ansible.builtin.group:
        name: media
-       state: present
-   - name: Create radarr user
-     ansible.builtin.user:
-       name: radarr
-       groups: media
-   - name: Ensure NFS support is available
-     ansible.builtin.apt:
-       pkg: nfs-common
        state: present
    - name: Mount media share
      ansible.posix.mount:
@@ -27,6 +16,20 @@
        opts: rw,sync,hard,nolock
        state: mounted
        fstype: nfs
+- name: Radarr
+  hosts: servarr
+  tasks:
+   - name: Update and install dependencies
+     ansible.builtin.apt:
+       update_cache: true
+       pkg:
+         - curl
+         - sqlite3
+       state: present
+   - name: Create radarr user
+     ansible.builtin.user:
+       name: radarr
+       groups: media
    - name: Install radarr
      ansible.builtin.shell: |
        wget --content-disposition 'http://radarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64'

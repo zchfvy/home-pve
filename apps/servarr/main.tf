@@ -1,7 +1,7 @@
-module "lxc_radarr" {
+module "lxc_servarr" {
   source = "../../modules/lxc_common"
 
-  node_name = "radarr"
+  node_name = "servarr"
   
   proxmox_node_name = var.proxmox_node_name
 }
