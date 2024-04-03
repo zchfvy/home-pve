@@ -16,6 +16,56 @@
        opts: rw,sync,hard,nolock
        state: mounted
        fstype: nfs
+- name: Prowlarr
+  hosts: servarr
+  tasks:
+   - name: Update and install dependencies
+     ansible.builtin.apt:
+       update_cache: true
+       pkg:
+         - curl
+         - sqlite3
+       state: present
+   - name: Create prowlarr user
+     ansible.builtin.user:
+       name: prowlarr
+       groups: media
+   - name: Install prowlarr
+     ansible.builtin.shell: |
+       wget --content-disposition 'http://prowlarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64'
+       tar -xvzf Prowlarr*.linux*.tar.gz
+       sudo mv Prowlarr /opt/
+       sudo chown prowlarr:prowlarr -R /opt/Prowlarr
+       rm Prowlarr*.linux*.tar.gz
+   - name: Ensure prowlarr can access a data dir
+     ansible.builtin.file:
+       path: /var/lib/prowlarr
+       state: directory
+       owner: prowlarr
+       group: prowlarr
+   - name: Install systemd unit
+     ansible.builtin.copy:
+       dest: /etc/systemd/system/prowlarr.service
+       content: |
+         [Unit]
+         Description=Prowlarr Daemon
+         After=syslog.target network.target
+         [Service]
+         User=prowlarr
+         Group=media
+         Type=simple
+
+         ExecStart=/opt/Prowlarr/Prowlarr -nobrowser -data=/var/lib/prowlarr/
+         TimeoutStopSec=20
+         KillMode=process
+         Restart=on-failure
+         [Install]
+         WantedBy=multi-user.target
+   - name: Ensure service is running
+     ansible.builtin.systemd_service:
+       name: prowlarr
+       enabled: true
+       state: started
 - name: Radarr
   hosts: servarr
   tasks:
