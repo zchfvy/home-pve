@@ -66,4 +66,54 @@
        name: radarr
        enabled: true
        state: started
+- name: Sonarr
+  hosts: servarr
+  tasks:
+   - name: Update and install dependencies
+     ansible.builtin.apt:
+       update_cache: true
+       pkg:
+         - curl
+         - sqlite3
+       state: present
+   - name: Create sonarr user
+     ansible.builtin.user:
+       name: sonarr
+       groups: media
+   - name: Install sonarr
+     ansible.builtin.shell: |
+       wget --content-disposition 'https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64'
+       tar -xvzf Sonarr*.linux*.tar.gz
+       sudo mv Sonarr /opt/
+       sudo chown sonarr:sonarr -R /opt/Sonarr
+       rm Sonarr*.linux*.tar.gz
+   - name: Ensure sonarr can access a data dir
+     ansible.builtin.file:
+       path: /var/lib/sonarr
+       state: directory
+       owner: sonarr
+       group: sonarr
+   - name: Install systemd unit
+     ansible.builtin.copy:
+       dest: /etc/systemd/system/sonarr.service
+       content: |
+         [Unit]
+         Description=Sonarr Daemon
+         After=syslog.target network.target
+         [Service]
+         User=sonarr
+         Group=media
+         Type=simple
+
+         ExecStart=/opt/Sonarr/Sonarr -nobrowser -data=/var/lib/sonarr/
+         TimeoutStopSec=20
+         KillMode=process
+         Restart=on-failure
+         [Install]
+         WantedBy=multi-user.target
+   - name: Ensure service is running
+     ansible.builtin.systemd_service:
+       name: sonarr
+       enabled: true
+       state: started
 
