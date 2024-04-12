@@ -28,6 +28,6 @@
      ansible.posix.mount:
        src: oddesy.home.arpa:/mnt/sixtb/media
        path: /mnt/media
-       opts: rw,sync,hard
+       opts: rw,sync,hard,nolock
        state: mounted
        fstype: nfs

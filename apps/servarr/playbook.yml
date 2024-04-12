@@ -116,6 +116,21 @@
        name: radarr
        enabled: true
        state: started
+   - name: Collect radarr api key
+     ansible.builtin.shell: |
+       cat /var/lib/radarr/config.xml | sed -nE 's|^.*<ApiKey>([0-9a-f]+)</ApiKey>.*$|\1|p'
+     register: radarr_api_key
+   - name: Set root folder
+     ansible.builtin.uri:
+       url: http://localhost:7878/api/v3/rootfolder
+       method: POST
+       body_format: json
+       headers:
+         X-Api-Key: "{{radarr_api_key.stdout}}"
+       body:
+         id: 0
+         path: /mnt/media/movies
+       status_code: [200, 201]
 - name: Sonarr
   hosts: servarr
   tasks:
@@ -166,4 +181,80 @@
        name: sonarr
        enabled: true
        state: started
-
+   - name: Collect sonarr api key
+     ansible.builtin.shell: |
+       cat /var/lib/sonarr/config.xml | sed -nE 's|^.*<ApiKey>([0-9a-f]+)</ApiKey>.*$|\1|p'
+     register: sonarr_api_key
+   - name: Set root folder
+     ansible.builtin.uri:
+       url: http://localhost:8989/api/v3/rootfolder
+       method: POST
+       body_format: json
+       headers:
+         X-Api-Key: "{{sonarr_api_key.stdout}}"
+       body:
+         id: 0
+         path: /mnt/media/tv
+       status_code: [200, 201]
+- name: Prowlarr Registration
+  hosts: servarr
+  tasks:
+   - name: Collect prowlarr api key
+     ansible.builtin.shell: |
+       cat /var/lib/prowlarr/config.xml | sed -nE 's|^.*<ApiKey>([0-9a-f]+)</ApiKey>.*$|\1|p'
+     register: prowlarr_api_key
+   - name: Add radarr to prowlarr
+     ansible.builtin.uri:
+       url: http://localhost:9696/api/v1/applications
+       method: POST
+       body_format: json
+       headers:
+         X-Api-Key: "{{prowlarr_api_key.stdout}}"
+       body:
+         name: Radarr
+         implementationName: Radarr
+         implementation: Radarr
+         configContract: RadarrSettings
+         syncLevel: fullSync
+         fields:
+           - name: prowlarrUrl
+             value: http://localhost:9696
+           - name: baseUrl
+             value: http://localhost:7878
+           - name: apiKey
+             value: "{{radarr_api_key.stdout}}"
+           - name: syncCategories
+             value: [2000, 2010, 2020, 2030, 2040, 2045, 2050, 2060, 2070, 2080, 2090]
+           - name: syncRejectBlocklistedTorrentHashesWhileGrabbing
+             value: false
+   - name: Add sonarr to prowlarr
+     ansible.builtin.uri:
+       url: http://localhost:9696/api/v1/applications
+       method: POST
+       body_format: json
+       headers:
+         X-Api-Key: "{{prowlarr_api_key.stdout}}"
+       body:
+         name: Sonarr
+         implementationName: Sonarr
+         implementation: Sonarr
+         configContract: SonarrSettings
+         syncLevel: fullSync
+         fields:
+           - name: prowlarrUrl
+             value: http://localhost:9696
+           - name: baseUrl
+             value: http://localhost:7878
+           - name: apiKey
+             value: "{{sonarr_api_key.stdout}}"
+           - name: syncCategories
+             value: [2000, 2010, 2020, 2030, 2040, 2045, 2050, 2060, 2070, 2080, 2090]
+           - name: syncRejectBlocklistedTorrentHashesWhileGrabbing
+             value: false
+   - name: Test connections working
+     ansible.builtin.uri:
+       url: http://localhost:9696/api/v1/applications/testall
+       method: POST
+       body_format: json
+       headers:
+         X-Api-Key: "{{prowlarr_api_key.stdout}}"
