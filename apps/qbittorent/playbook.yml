@@ -130,9 +130,10 @@
          -A OUTPUT -o tun0 -p icmp -j ACCEPT
          # Allow LAN traffic
          -A OUTPUT -d 192.168.1.0/24 -j ACCEPT
+         -A INPUT -d 192.168.1.0/24 -j ACCEPT
          # Allow the VPN itself
-         -A OUTPUT -p udp -m udp --dport 1194 -j ACCEPT
-         -A OUTPUT tun0 -j ACCEPT
+         -A OUTPUT -p udp -m udp --dport 1198 -j ACCEPT
+         -A OUTPUT -o tun0 -j ACCEPT
          COMMIT
    - name: Configure iptables ipv6
      ansible.builtin.copy:
@@ -149,3 +150,5 @@
        iptables -F && iptables -X  # clear any existing rules
        iptables-restore < /tmp/ipv4
        ip6tables-restore < /tmp/ipv6
+       iptables-save > /etc/iptables/rules.v4
+       ip6tables-save > /etc/iptables/rules.v6
