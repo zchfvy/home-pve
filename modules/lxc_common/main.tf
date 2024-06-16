@@ -51,7 +51,10 @@ resource "proxmox_virtual_environment_container" "ubuntu_container" {
   features {
     // Required to allow mounting
     mount = ["nfs"]
+    nesting = true
   }
+
+  unprivileged = var.privileged == false ? true : false
 }
 
 resource "random_password" "ubuntu_container_password" {

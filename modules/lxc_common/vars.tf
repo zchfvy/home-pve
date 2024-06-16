@@ -22,3 +22,7 @@ variable "disk_size" {
 variable "cpu_cores" {
   default = 1
 }
+
+variable "privileged" {
+  default = true
+}
