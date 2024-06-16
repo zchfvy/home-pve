@@ -1,0 +1,85 @@
+- name: Homepage
+  hosts: portal
+  tasks:
+    - name: Instapp pnpm
+      ansible.builtin.shell:
+        creates: ~/.local/share/pnpm/pnpm
+        cmd: |
+          curl -fsSL https://get.pnpm.io/install.sh | sh -
+    - name: Clone or update homepage
+      ansible.builtin.git:
+        repo: 'https://github.com/gethomepage/homepage.git'
+        dest: /srv/homepage
+    - name: build homepage (This may take a while!)
+      ansible.builtin.shell:
+        creates: /srv/homepage/config  # This may not be the best choice here
+        cmd: |
+          ~/.local/share/pnpm/pnpm install
+          ~/.local/share/pnpm/pnpm build
+      args:
+        chdir: /srv/homepage
+    - name: Add config files
+      ansible.builtin.copy:
+        dest: /srv/homepage/config
+        src: ./homepage/
+    - name: Install systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/homepage.service
+        content: |
+          [Unit]
+          Description=Homepage Daemon
+          After=syslog.target network.target
+          [Service]
+          User=root
+          Group=root
+          Type=simple
+ 
+          WorkingDirectory=/srv/homepage
+          ExecStart=/root/.local/share/pnpm/pnpm start
+          TimeoutStopSec=20
+          KillMode=process
+          Restart=on-failure
+          [Install]
+          WantedBy=multi-user.target
+    - name: Ensure service is running
+      ansible.builtin.systemd_service:
+        name: homepage
+        enabled: true
+        state: started
+ 
+# - name: Homepage
+#   hosts: portal
+#   tasks:
+#    - name: Add NPM repository
+#      ansible.builtin.deb822_repository:
+#        name: nodesource
+#        types: deb
+#        uris: "https://deb.nodesource.com/node_20.x"
+#        suites: nodistro
+#        components: main
+#        signed_by: "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key"
+#    - name: Update and install dependencies
+#      ansible.builtin.apt:
+#        pkg:
+#          - git
+#          - nodejs
+#        state: present
+#    - name: Clone or update homepage
+#      ansible.builtin.git:
+#        repo: 'https://github.com/gethomepage/homepage.git'
+#        dest: /srv/homepage
+#    - name: build homepage
+#      ansible.builtin.shell: |
+#        npm install
+#        npm run build
+#      args:
+#        chdir: /srv/homepage
+#    - name: Add config files
+#      ansible.builtin.copy:
+#        dest: /app/config/
+#        src: ./homepage/
+#    - name: run homepage
+#      ansible.builtin.shell: |
+#        npm start
+#      args:
+#        chdir: /srv/homepage

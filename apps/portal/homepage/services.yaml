@@ -1,0 +1,98 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/services
+
+- Infrastructure:
+    - Proxmox VE:
+        icon: proxmox.png
+        href: https://mariner.home.arpa:8006
+        description: VM and Container Manager
+        widget:
+          type: proxmox
+          url: https://mariner.home.arpa:8006
+          username: "{{lookup('env', 'PROXMOX_HOMEPAGE_USER')}}"
+          password: "{{lookup('env', 'PROXMOX_HOMEPAGE_PASSWORD')}}"
+    - Pihole:
+        icon: pi-hole.png
+        href: http://pihole.home.arpa/admin
+        description: Handles DNS and DHCP
+        widget:
+          type: pihole
+          url: http://pihole.home.arpa/admin/api.php
+          key: "{{lookup('env', 'PIHOLE_KEY')}}"
+    - TrueNAS:
+        icon: truenas.png
+        href: http://oddesy.home.arpa:81
+        description: Network storage management
+        widget:
+          type: truenas
+          url: http://oddesy.home.arpa:81
+          key: "{{lookup('env', 'TRUENAS_KEY')}}"
+          enablePools: true
+    - Telus Router:
+        icon: router.svg
+        href: http://192.168.1.254/
+        description: Telus' modem and router unit
+    - Telus Wireless AP:
+        icon: router.svg
+        href: http://192.168.1.42/
+        description: Telus' wireless access point
+
+- Media:
+    - Plex:
+       icon: plex.png
+       href: http://plex.home.arpa:32400
+       description: Watch movies and TV shows.
+       server: localhost
+       container: plex
+       widget:
+         type: plex
+         url: http://plex.home.arpa:32400
+         key: "{{lookup('env', 'PLEX_KEY')}}"
+    - Radarr:
+        icon: radarr.png
+        href: http://servarr.home.arpa:7878/
+        description: Movie management
+        widget:
+          type: radarr
+          url: http://servarr.home.arpa:7878
+          key: "{{lookup('env', 'RADARR_KEY')}}"
+    - Sonarr:
+        icon: sonarr.png
+        href: http://servarr.home.arpa:8989/
+        description: TV series management
+        widget:
+          type: sonarr
+          url: http://servarr.home.arpa:8989
+          key: "{{lookup('env', 'SONARR_KEY')}}"
+    - Prowlarr:
+        icon: prowlarr.png
+        href: http://servarr.home.arpa:9696/
+        description: Managing the other Managers
+        widget:
+          type: prowlarr
+          url: http://servarr.home.arpa:9696
+          key: "{{lookup('env', 'PROWLARR_KEY')}}"
+    - QBittorrent:
+        icon: qbittorrent.png
+        href: http://qbittorrent.home.arpa:8080
+        widget:
+          type: qbittorrent
+          url: http://qbittorrent.home.arpa:8080
+          username: admin
+          password: adminadmin
+
+
+- Misc:
+    - OctoPrint:
+        icon: octoprint.png
+        href: http://octo.home.arpa
+        description: 3D Printer
+        widget:
+          type: octoprint
+          url: http://octo.home.arpa
+          key: "{{lookup('env', 'OCTOPRINT_KEY')}}"
+    - Printer:
+        icon: printer.svg
+        description: BROTHER-DCP7065DN
+        href: http://brother-dcp7065dn.home.arpa/
