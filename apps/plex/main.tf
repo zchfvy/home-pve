@@ -5,7 +5,7 @@ module "lxc_plex" {
   
   proxmox_node_name = var.proxmox_node_name
 
-  disk_size = 8
+  disk_size = 16
   cpu_cores = 2
   dedicated_memory = 1024
 }
