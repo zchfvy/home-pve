@@ -1,0 +1,63 @@
+- name: PhotosShare
+  hosts: immich
+  tasks:
+   - name: Ensure NFS support is available
+     become: true
+     ansible.builtin.apt:
+       pkg: nfs-common
+       state: present
+   - name: Create media group
+     become: true
+     ansible.builtin.group:
+       name: media
+       state: present
+   - name: Mount media share
+     become: true
+     ansible.posix.mount:
+       src: oddesy.home.arpa:/mnt/sixtb/immich
+       path: /mnt/immich
+       opts: rw,sync,hard,nolock
+       state: mounted
+       fstype: nfs
+- name: Homepage
+  hosts: immich
+  tasks:
+    - name: Ensure core default ubuntu docker not installed
+      ansible.builtin.apt:
+        pkg:
+          - docker.io
+        state: absent
+    - name: Add docker repository
+      become: true
+      ansible.builtin.deb822_repository:
+        name: plexmediaserver
+        types: deb
+        uris: "https://download.docker.com/linux/ubuntu"
+        suites: '{{ ansible_distribution_release }}'
+        components: stable
+        signed_by: "https://download.docker.com/linux/ubuntu/gpg"
+    - name: Update and install dependencies
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+        pkg:
+          - apparmor
+          - apparmor-utils
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+          - docker-compose
+        state: present
+    - name: Add immich compose scripts
+      become: true
+      ansible.builtin.copy:
+        dest: /srv/immich-app
+        src: ./immich/
+    - name: Launch immich
+      become: true
+      ansible.builtin.shell:
+        cmd: |
+          cd /srv/immich-app
+          docker-compose up -d
