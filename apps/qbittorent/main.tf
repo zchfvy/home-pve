@@ -4,4 +4,6 @@ module "lxc_qbittorent" {
   node_name = "qbittorrent"
   
   proxmox_node_name = var.proxmox_node_name
+
+  dedicated_memory = 1024
 }
