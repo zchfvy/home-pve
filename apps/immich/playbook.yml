@@ -55,6 +55,11 @@
       ansible.builtin.copy:
         dest: /srv/immich-app
         src: ./immich/
+    - name: Add env file
+      become: true
+      ansible.builtin.template:
+        dest: /srv/immich-app/.env
+        src: ./immich/.env
     - name: Launch immich
       become: true
       ansible.builtin.shell:
