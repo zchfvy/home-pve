@@ -19,9 +19,11 @@
       args:
         chdir: /srv/homepage
     - name: Add config files
-      ansible.builtin.copy:
-        dest: /srv/homepage/config
-        src: ./homepage/
+      ansible.builtin.template:
+        dest: '/srv/homepage/config/{{ item.path }}'
+        src: '{{ item.src }}'
+      with_community.general.filetree: './homepage/'
+      when: item.state == 'file'
     - name: Install systemd unit
       ansible.builtin.copy:
         dest: /etc/systemd/system/homepage.service
