@@ -7,5 +7,5 @@ module "lxc_plex" {
 
   disk_size = 16
   cpu_cores = 2
-  dedicated_memory = 1024
+  dedicated_memory = 2048
 }
