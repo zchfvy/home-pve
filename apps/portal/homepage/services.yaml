@@ -96,3 +96,11 @@
         icon: printer.svg
         description: BROTHER-DCP7065DN
         href: http://brother-dcp7065dn.home.arpa/
+    - Immich:
+        icon: immich.svg
+        href: http://immich.home.arpa:2283/
+        description: Photo Management
+        widget:
+          type: immich
+          url: http://immich.home.arpa:2283
+          key: "{{lookup('env', 'IMMICH_API_KEY')}}"
