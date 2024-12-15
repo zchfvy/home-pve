@@ -22,11 +22,11 @@
           key: "{{lookup('env', 'PIHOLE_KEY')}}"
     - TrueNAS:
         icon: truenas.png
-        href: http://oddesy.home.arpa:81
+        href: http://oddesy.home.arpa
         description: Network storage management
         widget:
           type: truenas
-          url: http://oddesy.home.arpa:81
+          url: http://oddesy.home.arpa
           key: "{{lookup('env', 'TRUENAS_KEY')}}"
           enablePools: true
     - Telus Router:
