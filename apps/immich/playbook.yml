@@ -65,4 +65,4 @@
       ansible.builtin.shell:
         cmd: |
           cd /srv/immich-app
-          docker-compose up -d
+          docker compose pull && docker compose up -d
