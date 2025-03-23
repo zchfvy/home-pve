@@ -1,0 +1,71 @@
+- name: DocsShare
+  hosts: paperless
+  tasks:
+   - name: Ensure NFS support is available
+     become: true
+     ansible.builtin.apt:
+       pkg: nfs-common
+       state: present
+   - name: Create media group
+     become: true
+     ansible.builtin.group:
+       name: docs
+       state: present
+   - name: Mount docs share
+     become: true
+     ansible.posix.mount:
+       src: oddesy.home.arpa:/mnt/sixtb/paperless
+       path: /mnt/paperless
+       opts: rw,sync,hard,nolock
+       state: mounted
+       fstype: nfs
+- name: Docker
+  hosts: paperless
+  tasks:
+    - name: Ensure core default ubuntu docker not installed
+      ansible.builtin.apt:
+        pkg:
+          - docker.io
+        state: absent
+    - name: Add docker repository
+      become: true
+      ansible.builtin.deb822_repository:
+        name: plexmediaserver
+        types: deb
+        uris: "https://download.docker.com/linux/ubuntu"
+        suites: '{{ ansible_distribution_release }}'
+        components: stable
+        signed_by: "https://download.docker.com/linux/ubuntu/gpg"
+    - name: Update and install dependencies
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+        pkg:
+          - apparmor
+          - apparmor-utils
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+          - docker-compose
+        state: present
+- name: Paperless
+  hosts: paperless
+  tasks:
+    - name: Add docker compose scripts
+      become: true
+      ansible.builtin.copy:
+        dest: /srv/paperless-app
+        src: ./paperless/
+    - name: Add env file
+      become: true
+      ansible.builtin.template:
+        dest: /srv/paperless-app/docker-compose.env
+        src: ./paperless/docker-compose.env
+    - name: Launch paperless
+      become: true
+      ansible.builtin.shell:
+        cmd: |
+          cd /srv/paperless-app
+          docker compose pull && docker compose up -d
