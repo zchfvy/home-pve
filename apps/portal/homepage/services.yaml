@@ -105,3 +105,12 @@
           url: http://immich.home.arpa:2283
           key: "{{lookup('env', 'IMMICH_API_KEY')}}"
           version: 2
+    - Paperless:
+        icon: paperless-ngx.svg
+        href: http://paperless.home.arpa/
+        description: Document Management
+        widget:
+          type: paperlessngx
+          url: http://paperless.home.arpa
+          username: "{{lookup('env', 'PAPERLESS_ADMIN_USER')}}"
+          password: "{{lookup('env', 'PAPERLESS_ADMIN_PASSWORD')}}"
