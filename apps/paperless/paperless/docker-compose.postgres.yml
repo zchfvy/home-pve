@@ -50,12 +50,12 @@ services:
       - db
       - broker
     ports:
-      - "80:8000"
+      - "8000:8000"
     volumes:
       - data:/usr/src/paperless/data
       - media:/usr/src/paperless/media
-      - /mnt/shared/export:/usr/src/paperless/export
-      - /mnt/shared/consume:/usr/src/paperless/consume
+      - ./export:/usr/src/paperless/export
+      - ./consume:/usr/src/paperless/consume
     env_file: docker-compose.env
     environment:
       PAPERLESS_REDIS: redis://broker:6379
@@ -63,18 +63,6 @@ services:
 
 volumes:
   data:
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: /mnt/paperless/data
   media:
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: /mnt/paperless/media
   pgdata:
-    driver_opts:
-      type: "none"
-      o: "bind"
-      device: /mnt/paperless/pgdata
   redisdata:

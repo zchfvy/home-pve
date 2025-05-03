@@ -14,8 +14,16 @@
    - name: Mount docs share
      become: true
      ansible.posix.mount:
-       src: oddesy.home.arpa:/mnt/sixtb/paperless
+       src: "{{lookup('env', 'SHARE_PAPERLESS')}}"
        path: /mnt/paperless
+       opts: rw,sync,hard,nolock
+       state: mounted
+       fstype: nfs
+   - name: Mount main share for ingest
+     become: true
+     ansible.posix.mount:
+       src: "{{lookup('env', 'SHARE_GENERAL')}}/paperless"
+       path: /mnt/shared
        opts: rw,sync,hard,nolock
        state: mounted
        fstype: nfs
@@ -63,6 +71,24 @@
       ansible.builtin.template:
         dest: /srv/paperless-app/docker-compose.env
         src: ./paperless/docker-compose.env
+    - name: Ensure data dir
+      become: true
+      ansible.builtin.file:
+        path: /mnt/paperless/data
+        mode: 0755
+        state: directory
+    - name: Ensure pgdata dir
+      become: true
+      ansible.builtin.file:
+        path: /mnt/paperless/pgdata
+        mode: 0755
+        state: directory
+    - name: Ensure media dir
+      become: true
+      ansible.builtin.file:
+        path: /mnt/paperless/media
+        mode: 0755
+        state: directory
     - name: Launch paperless
       become: true
       ansible.builtin.shell:
