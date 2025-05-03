@@ -4,5 +4,5 @@ module "lxc_portal" {
   node_name = "portal"
   
   proxmox_node_name = var.proxmox_node_name
-  disk_size = 6
+  disk_size = 7
 }
