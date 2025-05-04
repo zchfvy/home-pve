@@ -39,6 +39,18 @@
         description: Telus' wireless access point
 
 - Media:
+    - Jellyfin:
+        icon: jellyfin.png
+        href: http://jellyfin.home.arpa:8096
+        description: Watch movies and TV shows.
+        widget:
+          type: jellyfin
+          url: http://jellyfin.home.arpa:8096
+          key: "{{lookup('env', 'JELLYFIN_KEY')}}"
+          enableBlocks: true
+          enableNowPlaying: true
+          enableUser: true
+          showEpisodeNumber: true
     - Plex:
        icon: plex.png
        href: http://plex.home.arpa:32400

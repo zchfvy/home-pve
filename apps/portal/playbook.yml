@@ -32,6 +32,15 @@
         src: '{{ item.src }}'
       with_community.general.filetree: './homepage/'
       when: item.state == 'file'
+    - name: add exec script
+      ansible.builtin.copy:
+        dest: /srv/homepage/exec_homepage.sh
+        mode: 755
+        content: |
+          #!/bin/bash
+          nvm use v23.11.0
+          export HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000
+          pnpm start
     - name: Install systemd unit
       ansible.builtin.copy:
         dest: /etc/systemd/system/homepage.service
@@ -47,7 +56,7 @@
           Environment="HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000"
  
           WorkingDirectory=/srv/homepage
-          ExecStart=/root/.local/share/pnpm/pnpm start
+          ExecStart=./exec_homepage.sh
           TimeoutStopSec=20
           KillMode=process
           Restart=on-failure
