@@ -1,0 +1,23 @@
+- name: Jellyfin
+  hosts: jellyfin
+  tasks:
+   - name: Ensure NFS support is available
+     ansible.builtin.apt:
+       pkg: nfs-common
+       state: present
+   - name: Mount media share
+     ansible.posix.mount:
+       src: oddesy.home.arpa:/mnt/sixtb/media
+       path: /mnt/media
+       opts: rw,sync,hard
+       state: mounted
+       fstype: nfs
+   - name: Update and install dependencies
+     ansible.builtin.apt:
+       pkg:
+         - curl
+       state: present
+   - name: Run jellyfin install
+     ansible.builtin.shell:
+      cmd: |
+        curl https://repo.jellyfin.org/install-debuntu.sh | sudo bash

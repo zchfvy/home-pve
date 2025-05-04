@@ -55,6 +55,15 @@ resource "proxmox_virtual_environment_container" "ubuntu_container" {
   }
 
   unprivileged = var.privileged == false ? true : false
+
+  dynamic "device_passthrough" {
+    for_each = var.passthrough_video == true ? toset([1]) : toset([])
+
+    content {
+      path = "/dev/dri/renderD128"
+      gid  = var.passthrough_video_group
+    }
+  }
 }
 
 resource "random_password" "ubuntu_container_password" {

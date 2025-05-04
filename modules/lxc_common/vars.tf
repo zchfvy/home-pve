@@ -26,3 +26,10 @@ variable "cpu_cores" {
 variable "privileged" {
   default = true
 }
+
+variable "passthrough_video" {
+  default = false
+}
+
+variable "passthrough_video_group" {
+}

@@ -3,9 +3,19 @@ terraform {
         commands = ["apply", "plan", "destroy"]
         arguments = ["-var-file=${get_parent_terragrunt_dir()}/terraform.tfvars"]
     }
+    after_hook "sleep" {
+        commands = ["apply"]
+        execute = ["sleep", "3"]
+        run_on_error = false
+    }
     after_hook "ansible" {
         commands = ["apply"]
         execute = ["ansible-playbook", "-i", "inventory.yml", "playbook.yml"]
+        run_on_error = false
+    }
+    after_hook "ansible_common" {
+        commands = ["apply"]
+        execute = ["ansible-playbook", "-i", "inventory.yml", "../../playbook.yml"]
         run_on_error = false
     }
 }
@@ -19,7 +29,7 @@ terraform {
   required_providers {
     proxmox = {
       source = "bpg/proxmox"
-      version = "0.46.4"
+      version = "0.77.0"
     }
     ansible = {
       source = "ansible/ansible"
