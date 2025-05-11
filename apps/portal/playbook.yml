@@ -13,6 +13,7 @@
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
           nvm install v23.11.0
           nvm use v23.11.0
+          nvm alias default v23.11.0
           npm install -g pnpm
     - name: Clone or update homepage
       ansible.builtin.git:
@@ -32,15 +33,6 @@
         src: '{{ item.src }}'
       with_community.general.filetree: './homepage/'
       when: item.state == 'file'
-    - name: add exec script
-      ansible.builtin.copy:
-        dest: /srv/homepage/exec_homepage.sh
-        mode: 755
-        content: |
-          #!/bin/bash
-          nvm use v23.11.0
-          export HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000
-          pnpm start
     - name: Install systemd unit
       ansible.builtin.copy:
         dest: /etc/systemd/system/homepage.service
@@ -54,9 +46,10 @@
           Type=simple
 
           Environment="HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000"
+          Environment"NODE_VERSION=v23.11.0"
  
           WorkingDirectory=/srv/homepage
-          ExecStart=./exec_homepage.sh
+          ExecStart=/root/.nvm/nvm-exec pnpm start
           TimeoutStopSec=20
           KillMode=process
           Restart=on-failure
