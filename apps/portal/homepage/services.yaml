@@ -51,16 +51,6 @@
           enableNowPlaying: true
           enableUser: true
           showEpisodeNumber: true
-    - Plex:
-       icon: plex.png
-       href: http://plex.home.arpa:32400
-       description: Watch movies and TV shows.
-       server: localhost
-       container: plex
-       widget:
-         type: plex
-         url: http://plex.home.arpa:32400
-         key: "{{lookup('env', 'PLEX_KEY')}}"
     - Radarr:
         icon: radarr.png
         href: http://servarr.home.arpa:7878/
