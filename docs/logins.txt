@@ -1,0 +1,45 @@
+================================================================================
+Primary Storage and Backups
+================================================================================
+
+### TrueNAS SCALE - Network Attatched Storage (NAS) ############################
+Contains all data
+http://oddesy.home.arpa:81/
+Username: root
+Password: noneuclidean
+
+### Wasabi Main Login ##########################################################
+Cloud service with backups of NAS data
+https://wasabi.com
+Username: hs.jason@gmail.com
+Password: MDK9PCofwjv8Z9os
+
+#### Credentials used for running backup jobs
+endpoint: s3.us-west-1.wasabisys.com
+Access Key: S86XLEPEJK96A4OU7XJA
+Secret Access Key: ezXUm3eZG6QzphGHzjIzGO2oTGN81MZoCPWqlPSg
+
+### rClone Buckets #############################################################
+
+#### old family photos
+bucket: jasonxun-home-nas-main/family
+rclone crypt password: hamilton-smith
+
+#### newer photos (immich)
+bucket: jasonxun-home-nas-main/immich
+rclone-crypt not used
+
+================================================================================
+Applications
+================================================================================
+
+================================================================================
+Networking
+================================================================================
+================================================================================
+Other tools
+================================================================================
+Octoprint - 3d Printer
+http://octo.home.arpa/
+Username: jason
+Password: noneuclidean

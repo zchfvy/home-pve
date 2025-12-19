@@ -46,7 +46,7 @@
           Type=simple
 
           Environment="HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000"
-          Environment"NODE_VERSION=v23.11.0"
+          Environment="NODE_VERSION=v23.11.0"
  
           WorkingDirectory=/srv/homepage
           ExecStart=/root/.nvm/nvm-exec pnpm start

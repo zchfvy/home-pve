@@ -77,22 +77,22 @@
        state: present
    - name: Add openvpn config files
      ansible.builtin.copy:
-       src: ../../vpns/{{lookup('env', 'OPENVPN_CONFIG')}}.ovpn
-       dest: /etc/openvpn/{{lookup('env', 'OPENVPN_CONFIG')}}.conf
+       src: ../../vpns/{{ vault_openvpn.config_name }}.ovpn
+       dest: /etc/openvpn/{{ vault_openvpn.config_name }}.conf
        mode: '400'
    - name: Add auth user pass file
      ansible.builtin.copy:
        dest: /etc/openvpn/passwd
        mode: '400'
        content: |
-         {{lookup('env', 'OPENVPN_USERNAME')}}
-         {{lookup('env', 'OPENVPN_PASSWORD')}}
+         {{ vault_openvpn.username }}
+         {{ vault_openvpn.password }}
    - name: Set openvpn config files to use auth-user-pass
      ansible.builtin.shell: |
        sed -iE 's|^auth-user-pass.*$|auth-user-pass /etc/openvpn/passwd|' /etc/openvpn/*.conf
    - name: Ensure service is running
      ansible.builtin.systemd_service:
-       name: "openvpn@{{lookup('env', 'OPENVPN_CONFIG')}}"
+       name: "openvpn@{{ vault_openvpn.config_name }}"
        enabled: true
        state: started
 - name: VPN Killswitch
