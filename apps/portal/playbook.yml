@@ -1,66 +1,56 @@
-- name: Homepage
+- name: Setup Homepage
   hosts: portal
+  roles:
+    - role: systemd_service
+      vars:
+        service_name: homepage
+        service_description: Homepage Daemon
+        service_user: root
+        service_group: root
+        service_workdir: /srv/homepage
+        service_exec: /root/.nvm/nvm-exec pnpm start
+        service_environment:
+          - "HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000"
+          - "NODE_VERSION=v23.11.0"
+
   tasks:
-    - name: Instapp pnpm
+    - name: Install pnpm
       ansible.builtin.shell:
         creates: ~/.local/share/pnpm/pnpm
-        cmd: |
-          curl -fsSL https://get.pnpm.io/install.sh | sh -
-    - name: Install nodejs
+        cmd: curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+    - name: Install nvm and nodejs
       ansible.builtin.shell:
         creates: /root/.nvm
         cmd: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+          source /root/.nvm/nvm.sh
           nvm install v23.11.0
           nvm use v23.11.0
           nvm alias default v23.11.0
-          npm install -g pnpm
+
     - name: Clone or update homepage
       ansible.builtin.git:
         repo: 'https://github.com/gethomepage/homepage.git'
         dest: /srv/homepage
-    - name: build homepage (This may take a while! If it crashes increase memory!)
+
+    - name: Build homepage (This may take a while! If it crashes increase memory!)
       ansible.builtin.shell:
-        creates: /srv/homepage/config  # This may not be the best choice here
+        creates: /srv/homepage/.next
         cmd: |
-          ~/.local/share/pnpm/pnpm install
-          ~/.local/share/pnpm/pnpm build
+          source /root/.nvm/nvm.sh
+          pnpm install
+          pnpm build
       args:
         chdir: /srv/homepage
+
     - name: Add config files
       ansible.builtin.template:
         dest: '/srv/homepage/config/{{ item.path }}'
         src: '{{ item.src }}'
       with_community.general.filetree: './homepage/'
       when: item.state == 'file'
-    - name: Install systemd unit
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/homepage.service
-        content: |
-          [Unit]
-          Description=Homepage Daemon
-          After=syslog.target network.target
-          [Service]
-          User=root
-          Group=root
-          Type=simple
 
-          Environment="HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000"
-          Environment="NODE_VERSION=v23.11.0"
- 
-          WorkingDirectory=/srv/homepage
-          ExecStart=/root/.nvm/nvm-exec pnpm start
-          TimeoutStopSec=20
-          KillMode=process
-          Restart=on-failure
-          [Install]
-          WantedBy=multi-user.target
-    - name: Ensure service is running
-      ansible.builtin.systemd_service:
-        name: homepage
-        enabled: true
-        state: started
- 
 # - name: Nginx
 #   hosts: portal
 #   vars:
@@ -75,7 +65,7 @@
 #      ansible.builtin.apt:
 #        pkg: nginx
 #        state: present
-#    - name: ENsure default site not enabled
+#    - name: Ensure default site not enabled
 #      ansible.builtin.file:
 #        path: /etc/nginx/sites-enabled/default
 #        state: absent

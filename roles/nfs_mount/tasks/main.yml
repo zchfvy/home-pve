@@ -1,0 +1,24 @@
+---
+# NFS mount role
+
+- name: Ensure NFS support is available
+  become: true
+  ansible.builtin.apt:
+    pkg: nfs-common
+    state: present
+
+- name: Create group for NFS share access
+  become: true
+  ansible.builtin.group:
+    name: "{{ nfs_group }}"
+    state: present
+  when: nfs_group is defined
+
+- name: Mount NFS share
+  become: true
+  ansible.posix.mount:
+    src: "{{ nfs_src }}"
+    path: "{{ nfs_path }}"
+    opts: "{{ nfs_opts }}"
+    state: "{{ nfs_state }}"
+    fstype: "{{ nfs_fstype }}"

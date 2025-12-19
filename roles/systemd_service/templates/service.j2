@@ -1,0 +1,25 @@
+[Unit]
+Description={{ service_description | default(service_name + ' Service') }}
+After={{ service_after }}
+{% if service_wants is defined %}
+Wants={{ service_wants }}
+{% endif %}
+[Service]
+User={{ service_user }}
+Group={{ service_group }}
+Type={{ service_type }}
+{% if service_environment is defined %}
+{% for env in service_environment %}
+Environment="{{ env }}"
+{% endfor %}
+{% endif %}
+{% if service_workdir is defined %}
+WorkingDirectory={{ service_workdir }}
+{% endif %}
+ExecStart={{ service_exec }}
+TimeoutStopSec={{ service_timeout_stop }}
+KillMode={{ service_kill_mode }}
+Restart={{ service_restart }}
+
+[Install]
+WantedBy={{ service_wanted_by }}

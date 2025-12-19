@@ -1,33 +1,34 @@
-- name: Plex
+- name: Setup Plex
   hosts: plex
+  roles:
+    - role: nfs_mount
+      vars:
+        nfs_src: "{{ nfs_shares.media }}"
+        nfs_path: /mnt/media
+        nfs_opts: "rw,sync,hard"
+
   tasks:
-   - name: Update and install dependencies
-     ansible.builtin.apt:
-       pkg:
-         - curl
-         - gnupg
-       state: present
-   - name: Add plex repository
-     ansible.builtin.deb822_repository:
-       name: plexmediaserver
-       types: deb
-       uris: "https://downloads.plex.tv/repo/deb"
-       suites: public
-       components: main
-       signed_by: "https://downloads.plex.tv/plex-keys/PlexSign.key"
-   - name: Run plex install
-     ansible.builtin.apt:
-       pkg: plexmediaserver
-       state: present
-       update_cache: yes
-   - name: Ensure NFS support is available
-     ansible.builtin.apt:
-       pkg: nfs-common
-       state: present
-   - name: Mount media share
-     ansible.posix.mount:
-       src: oddesy.home.arpa:/mnt/sixtb/media
-       path: /mnt/media
-       opts: rw,sync,hard
-       state: mounted
-       fstype: nfs
+    - name: Install dependencies
+      become: true
+      ansible.builtin.apt:
+        pkg:
+          - curl
+          - gnupg
+        state: present
+
+    - name: Add plex repository
+      become: true
+      ansible.builtin.deb822_repository:
+        name: plexmediaserver
+        types: deb
+        uris: "https://downloads.plex.tv/repo/deb"
+        suites: public
+        components: main
+        signed_by: "https://downloads.plex.tv/plex-keys/PlexSign.key"
+
+    - name: Install plex
+      become: true
+      ansible.builtin.apt:
+        pkg: plexmediaserver
+        state: present
+        update_cache: true

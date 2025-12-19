@@ -1,0 +1,16 @@
+[Unit]
+Description={{ app_name | capitalize }} Daemon
+After=syslog.target network.target
+
+[Service]
+User={{ app_name }}
+Group={{ servarr_group }}
+Type=simple
+
+ExecStart={{ servarr_install_dir }}/{{ app_name | capitalize }}/{{ app_name | capitalize }} -nobrowser -data={{ servarr_data_dir }}/{{ app_name }}/
+TimeoutStopSec=20
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

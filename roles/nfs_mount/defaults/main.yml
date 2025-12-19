@@ -1,0 +1,6 @@
+---
+# NFS mount role defaults
+
+nfs_opts: "rw,sync,hard,nolock"
+nfs_fstype: "nfs"
+nfs_state: "mounted"

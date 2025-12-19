@@ -1,154 +1,191 @@
-- name: MediaShare
+- name: Setup Media Share
+  hosts: qbittorrent
+  roles:
+    - role: nfs_mount
+      vars:
+        nfs_src: "{{ nfs_shares.media }}"
+        nfs_path: /mnt/media
+
+- name: Install qBittorrent
   hosts: qbittorrent
   tasks:
-   - name: Ensure NFS support is available
-     ansible.builtin.apt:
-       pkg: nfs-common
-       state: present
-   - name: Mount media share
-     ansible.posix.mount:
-       src: oddesy.home.arpa:/mnt/sixtb/media
-       path: /mnt/media
-       opts: rw,sync,hard,nolock
-       state: mounted
-       fstype: nfs
-- name: Qbittorrent
+    - name: Create qbt user
+      become: true
+      ansible.builtin.user:
+        name: qbtuser
+        shell: /usr/sbin/nologin
+        system: true
+
+    - name: Install qbittorrent-nox
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+        pkg: qbittorrent-nox
+        state: present
+
+    - name: Ensure config directory exists
+      become: true
+      ansible.builtin.file:
+        path: /home/qbtuser/.config/qBittorrent
+        state: directory
+        owner: qbtuser
+        group: qbtuser
+        mode: "0755"
+
+    - name: Configure qbittorrent
+      become: true
+      ansible.builtin.copy:
+        dest: /home/qbtuser/.config/qBittorrent/qBittorrent.conf
+        owner: qbtuser
+        group: qbtuser
+        content: |
+          [BitTorrent]
+          Session\Port=20116
+          Session\QueueingSystemEnabled=false
+
+          [LegalNotice]
+          Accepted=true
+
+          [Meta]
+          MigrationVersion=3
+
+          [Network]
+          Cookies=@Invalid()
+
+    - name: Install systemd unit
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/qbittorrent.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=qBittorrent-nox service
+          Documentation=man:qbittorrent-nox(1)
+          Wants=network-online.target
+          After=network-online.target nss-lookup.target
+
+          [Service]
+          Type=exec
+          User=qbtuser
+          ExecStart=/usr/bin/qbittorrent-nox
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Ensure service is running
+      become: true
+      ansible.builtin.systemd_service:
+        name: qbittorrent
+        daemon_reload: true
+        enabled: true
+        state: started
+
+- name: Setup OpenVPN
   hosts: qbittorrent
   tasks:
-   - name: Create qbt user
-     ansible.builtin.user:
-       name: qbtuser
-   - name: Disable ssh for qbtuser
-     ansible.builtin.shell: |
-       sudo usermod -s /usr/sbin/nologin qbtuser
-   - name: Install qbittorrent-nox
-     ansible.builtin.apt:
-       update_cache: true
-       pkg:
-         - qbittorrent-nox
-       state: present
-   - name: Configure qbittorent
-     ansible.builtin.copy:
-       dest: /home/qbtuser/.config/qBittorrent/qBittorrent.conf
-       content: |
-         [BitTorrent]
-         Session\Port=20116
-         Session\QueueingSystemEnabled=false
+    - name: Install OpenVPN
+      become: true
+      ansible.builtin.apt:
+        pkg: openvpn
+        state: present
 
-         [LegalNotice]
-         Accepted=true
+    - name: Add openvpn config files
+      become: true
+      ansible.builtin.copy:
+        src: "../../vpns/{{ vault_openvpn.config_name }}.ovpn"
+        dest: "/etc/openvpn/{{ vault_openvpn.config_name }}.conf"
+        mode: "0400"
 
-         [Meta]
-         MigrationVersion=3
+    - name: Add auth user pass file
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/openvpn/passwd
+        mode: "0400"
+        content: |
+          {{ vault_openvpn.username }}
+          {{ vault_openvpn.password }}
 
-         [Network]
-         Cookies=@Invalid()
-   - name: Install systemd unit
-     ansible.builtin.copy:
-       dest: /etc/systemd/system/qbittorrent.service
-       content: |
-         [Unit]
-         Description=qBittorrent-nox service
-         Documentation=man:qbittorrent-nox(1)
-         Wants=network-online.target
-         After=network-online.target nss-lookup.target
- 
-         [Service]
-         Type=exec
-         User=qbtuser
-         ExecStart=/usr/bin/qbittorrent-nox
-         # uncomment this to use "Network interface" and/or "Optional IP address to bind to" options
-         # without this binding will fail and qBittorrent's traffic will go through the default route
-         # AmbientCapabilities=CAP_NET_RAW
- 
-         [Install]
-         WantedBy=multi-user.target
-   - name: Ensure service is running
-     ansible.builtin.systemd_service:
-       name: qbittorrent
-       enabled: true
-       state: started
-- name: OpenVPN
+    - name: Set openvpn config to use auth-user-pass
+      become: true
+      ansible.builtin.replace:
+        path: "/etc/openvpn/{{ vault_openvpn.config_name }}.conf"
+        regexp: '^auth-user-pass.*$'
+        replace: 'auth-user-pass /etc/openvpn/passwd'
+
+    - name: Ensure OpenVPN service is running
+      become: true
+      ansible.builtin.systemd_service:
+        name: "openvpn@{{ vault_openvpn.config_name }}"
+        enabled: true
+        state: started
+
+- name: Setup VPN Killswitch
   hosts: qbittorrent
   tasks:
-   - name: OpenVPN is installed
-     ansible.builtin.apt:
-       pkg: openvpn
-       state: present
-   - name: Add openvpn config files
-     ansible.builtin.copy:
-       src: ../../vpns/{{ vault_openvpn.config_name }}.ovpn
-       dest: /etc/openvpn/{{ vault_openvpn.config_name }}.conf
-       mode: '400'
-   - name: Add auth user pass file
-     ansible.builtin.copy:
-       dest: /etc/openvpn/passwd
-       mode: '400'
-       content: |
-         {{ vault_openvpn.username }}
-         {{ vault_openvpn.password }}
-   - name: Set openvpn config files to use auth-user-pass
-     ansible.builtin.shell: |
-       sed -iE 's|^auth-user-pass.*$|auth-user-pass /etc/openvpn/passwd|' /etc/openvpn/*.conf
-   - name: Ensure service is running
-     ansible.builtin.systemd_service:
-       name: "openvpn@{{ vault_openvpn.config_name }}"
-       enabled: true
-       state: started
-- name: VPN Killswitch
-  hosts: qbittorrent
-  tasks:
-   - name: Ipv6 Disabled
-     ansible.builtin.copy:
-       dest: /etc/sysctl.conf
-       mode: 644
-       content: |
-         net.ipv6.conf.all.disable_ipv6=1
-         net.ipv6.conf.default.disable_ipv6=1
-         net.ipv6.conf.lo.disable_ipv6=1
-   - name: Reload sysctl
-     ansible.builtin.shell: |
-       sysctl -p
-   - name: Install iptables-presist
-     ansible.builtin.apt:
-       pkg: iptables-persistent
-       state: present
-   - name: Configure iptables
-     ansible.builtin.copy:
-       dest: /tmp/ipv4
-       content: |
-         * filter
-         # Drop all by default
-         -P INPUT DROP
-         -P FORWARD DROP
-         -P OUTPUT DROP
+    - name: Disable IPv6
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/sysctl.d/99-disable-ipv6.conf
+        mode: "0644"
+        content: |
+          net.ipv6.conf.all.disable_ipv6=1
+          net.ipv6.conf.default.disable_ipv6=1
+          net.ipv6.conf.lo.disable_ipv6=1
+      notify: Reload sysctl
 
-         # Allow input from established connections
-         -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-         # Allow loopback and ping
-         -A OUTPUT -o lo -j ACCEPT
-         -A OUTPUT -o tun0 -p icmp -j ACCEPT
-         # Allow LAN traffic
-         -A OUTPUT -d 192.168.1.0/24 -j ACCEPT
-         -A INPUT -d 192.168.1.0/24 -j ACCEPT
-         # Allow the VPN itself
-         -A OUTPUT -p udp -m udp --dport 1198 -j ACCEPT
-         -A OUTPUT -o tun0 -j ACCEPT
-         COMMIT
-   - name: Configure iptables ipv6
-     ansible.builtin.copy:
-       dest: /tmp/ipv6
-       content: |
-         * filter
-         # Drop everything!
-         -P INPUT DROP
-         -P FORWARD DROP
-         -P OUTPUT DROP
-         COMMIT
-   - name: Load iptables
-     ansible.builtin.shell: |
-       iptables -F && iptables -X  # clear any existing rules
-       iptables-restore < /tmp/ipv4
-       ip6tables-restore < /tmp/ipv6
-       iptables-save > /etc/iptables/rules.v4
-       ip6tables-save > /etc/iptables/rules.v6
+    - name: Install iptables-persistent
+      become: true
+      ansible.builtin.apt:
+        pkg: iptables-persistent
+        state: present
+
+    - name: Configure IPv4 iptables rules
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/iptables/rules.v4
+        mode: "0644"
+        content: |
+          * filter
+          # Drop all by default
+          -P INPUT DROP
+          -P FORWARD DROP
+          -P OUTPUT DROP
+
+          # Allow input from established connections
+          -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          # Allow loopback and ping
+          -A OUTPUT -o lo -j ACCEPT
+          -A OUTPUT -o tun0 -p icmp -j ACCEPT
+          # Allow LAN traffic
+          -A OUTPUT -d 192.168.1.0/24 -j ACCEPT
+          -A INPUT -d 192.168.1.0/24 -j ACCEPT
+          # Allow the VPN itself
+          -A OUTPUT -p udp -m udp --dport 1198 -j ACCEPT
+          -A OUTPUT -o tun0 -j ACCEPT
+          COMMIT
+      notify: Reload iptables
+
+    - name: Configure IPv6 iptables rules
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/iptables/rules.v6
+        mode: "0644"
+        content: |
+          * filter
+          # Drop everything!
+          -P INPUT DROP
+          -P FORWARD DROP
+          -P OUTPUT DROP
+          COMMIT
+      notify: Reload iptables
+
+  handlers:
+    - name: Reload sysctl
+      become: true
+      ansible.builtin.command: sysctl -p /etc/sysctl.d/99-disable-ipv6.conf
+
+    - name: Reload iptables
+      become: true
+      ansible.builtin.shell: |
+        iptables-restore < /etc/iptables/rules.v4
+        ip6tables-restore < /etc/iptables/rules.v6

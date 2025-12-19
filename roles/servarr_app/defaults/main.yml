@@ -1,0 +1,16 @@
+---
+# Servarr application role defaults
+
+servarr_group: "media"
+servarr_install_dir: "/opt"
+servarr_data_dir: "/var/lib"
+
+servarr_packages:
+  - curl
+  - sqlite3
+
+# Download URLs for each app
+servarr_download_urls:
+  prowlarr: "http://prowlarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64"
+  radarr: "http://radarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64"
+  sonarr: "https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64"

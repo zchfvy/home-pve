@@ -1,0 +1,11 @@
+---
+# Systemd service role defaults
+
+service_type: "simple"
+service_restart: "on-failure"
+service_timeout_stop: 20
+service_kill_mode: "process"
+service_after: "syslog.target network.target"
+service_wanted_by: "multi-user.target"
+service_enabled: true
+service_state: "started"

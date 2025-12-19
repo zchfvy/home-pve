@@ -1,169 +1,29 @@
-- name: MediaShare
+- name: Setup Media Share
   hosts: servarr
-  tasks:
-   - name: Ensure NFS support is available
-     ansible.builtin.apt:
-       pkg: nfs-common
-       state: present
-   - name: Create media group
-     ansible.builtin.group:
-       name: media
-       state: present
-   - name: Mount media share
-     ansible.posix.mount:
-       src: oddesy.home.arpa:/mnt/sixtb/media
-       path: /mnt/media
-       opts: rw,sync,hard,nolock
-       state: mounted
-       fstype: nfs
-- name: Prowlarr
+  roles:
+    - role: nfs_mount
+      vars:
+        nfs_src: "{{ nfs_shares.media }}"
+        nfs_path: /mnt/media
+        nfs_group: media
+
+- name: Install Prowlarr
   hosts: servarr
-  tasks:
-   - name: Update and install dependencies
-     ansible.builtin.apt:
-       update_cache: true
-       pkg:
-         - curl
-         - sqlite3
-       state: present
-   - name: Create prowlarr user
-     ansible.builtin.user:
-       name: prowlarr
-       groups: media
-   - name: Install prowlarr
-     ansible.builtin.shell: |
-       wget --content-disposition 'http://prowlarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64'
-       tar -xvzf Prowlarr*.linux*.tar.gz
-       sudo mv Prowlarr /opt/
-       sudo chown prowlarr:prowlarr -R /opt/Prowlarr
-       rm Prowlarr*.linux*.tar.gz
-   - name: Ensure prowlarr can access a data dir
-     ansible.builtin.file:
-       path: /var/lib/prowlarr
-       state: directory
-       owner: prowlarr
-       group: prowlarr
-   - name: Install systemd unit
-     ansible.builtin.copy:
-       dest: /etc/systemd/system/prowlarr.service
-       content: |
-         [Unit]
-         Description=Prowlarr Daemon
-         After=syslog.target network.target
-         [Service]
-         User=prowlarr
-         Group=media
-         Type=simple
+  roles:
+    - role: servarr_app
+      vars:
+        app_name: prowlarr
 
-         ExecStart=/opt/Prowlarr/Prowlarr -nobrowser -data=/var/lib/prowlarr/
-         TimeoutStopSec=20
-         KillMode=process
-         Restart=on-failure
-         [Install]
-         WantedBy=multi-user.target
-   - name: Ensure service is running
-     ansible.builtin.systemd_service:
-       name: prowlarr
-       enabled: true
-       state: started
-- name: Radarr
+- name: Install Radarr
   hosts: servarr
-  tasks:
-   - name: Update and install dependencies
-     ansible.builtin.apt:
-       update_cache: true
-       pkg:
-         - curl
-         - sqlite3
-       state: present
-   - name: Create radarr user
-     ansible.builtin.user:
-       name: radarr
-       groups: media
-   - name: Install radarr
-     ansible.builtin.shell: |
-       wget --content-disposition 'http://radarr.servarr.com/v1/update/master/updatefile?os=linux&runtime=netcore&arch=x64'
-       tar -xvzf Radarr*.linux*.tar.gz
-       sudo mv Radarr /opt/
-       sudo chown radarr:radarr -R /opt/Radarr
-       rm Radarr*.linux*.tar.gz
-   - name: Ensure radarr can access a data dir
-     ansible.builtin.file:
-       path: /var/lib/radarr
-       state: directory
-       owner: radarr
-       group: radarr
-   - name: Install systemd unit
-     ansible.builtin.copy:
-       dest: /etc/systemd/system/radarr.service
-       content: |
-         [Unit]
-         Description=Radarr Daemon
-         After=syslog.target network.target
-         [Service]
-         User=radarr
-         Group=media
-         Type=simple
+  roles:
+    - role: servarr_app
+      vars:
+        app_name: radarr
 
-         ExecStart=/opt/Radarr/Radarr -nobrowser -data=/var/lib/radarr/
-         TimeoutStopSec=20
-         KillMode=process
-         Restart=on-failure
-         [Install]
-         WantedBy=multi-user.target
-   - name: Ensure service is running
-     ansible.builtin.systemd_service:
-       name: radarr
-       enabled: true
-       state: started
-- name: Sonarr
+- name: Install Sonarr
   hosts: servarr
-  tasks:
-   - name: Update and install dependencies
-     ansible.builtin.apt:
-       update_cache: true
-       pkg:
-         - curl
-         - sqlite3
-       state: present
-   - name: Create sonarr user
-     ansible.builtin.user:
-       name: sonarr
-       groups: media
-   - name: Install sonarr
-     ansible.builtin.shell: |
-       wget --content-disposition 'https://services.sonarr.tv/v1/download/main/latest?version=4&os=linux&arch=x64'
-       tar -xvzf Sonarr*.linux*.tar.gz
-       sudo mv Sonarr /opt/
-       sudo chown sonarr:sonarr -R /opt/Sonarr
-       rm Sonarr*.linux*.tar.gz
-   - name: Ensure sonarr can access a data dir
-     ansible.builtin.file:
-       path: /var/lib/sonarr
-       state: directory
-       owner: sonarr
-       group: sonarr
-   - name: Install systemd unit
-     ansible.builtin.copy:
-       dest: /etc/systemd/system/sonarr.service
-       content: |
-         [Unit]
-         Description=Sonarr Daemon
-         After=syslog.target network.target
-         [Service]
-         User=sonarr
-         Group=media
-         Type=simple
-
-         ExecStart=/opt/Sonarr/Sonarr -nobrowser -data=/var/lib/sonarr/
-         TimeoutStopSec=20
-         KillMode=process
-         Restart=on-failure
-         [Install]
-         WantedBy=multi-user.target
-   - name: Ensure service is running
-     ansible.builtin.systemd_service:
-       name: sonarr
-       enabled: true
-       state: started
-
+  roles:
+    - role: servarr_app
+      vars:
+        app_name: sonarr
