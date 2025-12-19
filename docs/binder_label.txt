@@ -1,0 +1,4 @@
+,---------------------------------------------,
+|              HOME SERVER STACK              |
+| DOCUMENTATION - CONFIGURATION - CREDENTIALS |
+'---------------------------------------------'

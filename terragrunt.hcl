@@ -3,19 +3,9 @@ terraform {
         commands = ["apply", "plan", "destroy"]
         arguments = ["-var-file=${get_parent_terragrunt_dir()}/terraform.tfvars"]
     }
-    after_hook "sleep" {
-        commands = ["apply"]
-        execute = ["sleep", "3"]
-        run_on_error = false
-    }
-    after_hook "ansible" {
-        commands = ["apply"]
-        execute = ["ansible-playbook", "-i", "inventory.yml", "playbook.yml"]
-        run_on_error = false
-    }
-    after_hook "ansible_common" {
-        commands = ["apply"]
-        execute = ["ansible-playbook", "-i", "inventory.yml", "../../playbook.yml"]
+    before_hook "update_providers" {
+        commands = ["plan", "apply"]
+        execute = ["terraform", "init", "-upgrade"]
         run_on_error = false
     }
 }

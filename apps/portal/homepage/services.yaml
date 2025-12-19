@@ -10,8 +10,8 @@
         widget:
           type: proxmox
           url: https://mariner.home.arpa:8006
-          username: "{{lookup('env', 'PROXMOX_HOMEPAGE_USER')}}"
-          password: "{{lookup('env', 'PROXMOX_HOMEPAGE_PASSWORD')}}"
+          username: "{{ vault_api_keys.proxmox_homepage_user }}"
+          password: "{{ vault_api_keys.proxmox_homepage_password }}"
     - Pihole:
         icon: pi-hole.png
         href: http://pihole.home.arpa/admin
@@ -19,7 +19,7 @@
         widget:
           type: pihole
           url: http://pihole.home.arpa/admin/api.php
-          key: "{{lookup('env', 'PIHOLE_KEY')}}"
+          key: "{{ vault_api_keys.pihole }}"
     - TrueNAS:
         icon: truenas.png
         href: http://oddesy.home.arpa
@@ -27,7 +27,7 @@
         widget:
           type: truenas
           url: http://oddesy.home.arpa
-          key: "{{lookup('env', 'TRUENAS_KEY')}}"
+          key: "{{ vault_api_keys.truenas }}"
           enablePools: true
     - Telus Router:
         icon: router.svg
@@ -46,7 +46,7 @@
         widget:
           type: jellyfin
           url: http://jellyfin.home.arpa:8096
-          key: "{{lookup('env', 'JELLYFIN_KEY')}}"
+          key: "{{ vault_api_keys.jellyfin }}"
           enableBlocks: true
           enableNowPlaying: true
           enableUser: true
@@ -58,7 +58,7 @@
         widget:
           type: radarr
           url: http://servarr.home.arpa:7878
-          key: "{{lookup('env', 'RADARR_KEY')}}"
+          key: "{{ vault_api_keys.radarr }}"
     - Sonarr:
         icon: sonarr.png
         href: http://servarr.home.arpa:8989/
@@ -66,7 +66,7 @@
         widget:
           type: sonarr
           url: http://servarr.home.arpa:8989
-          key: "{{lookup('env', 'SONARR_KEY')}}"
+          key: "{{ vault_api_keys.sonarr }}"
     - Prowlarr:
         icon: prowlarr.png
         href: http://servarr.home.arpa:9696/
@@ -74,7 +74,7 @@
         widget:
           type: prowlarr
           url: http://servarr.home.arpa:9696
-          key: "{{lookup('env', 'PROWLARR_KEY')}}"
+          key: "{{ vault_api_keys.prowlarr }}"
     - QBittorrent:
         icon: qbittorrent.png
         href: http://qbittorrent.home.arpa:8080
@@ -93,7 +93,7 @@
         widget:
           type: octoprint
           url: http://octo.home.arpa
-          key: "{{lookup('env', 'OCTOPRINT_KEY')}}"
+          key: "{{ vault_api_keys.octoprint }}"
     - Printer:
         icon: printer.svg
         description: BROTHER-DCP7065DN
@@ -105,7 +105,7 @@
         widget:
           type: immich
           url: http://immich.home.arpa:2283
-          key: "{{lookup('env', 'IMMICH_API_KEY')}}"
+          key: "{{ vault_api_keys.immich }}"
           version: 2
     - Paperless:
         icon: paperless-ngx.svg
@@ -114,5 +114,5 @@
         widget:
           type: paperlessngx
           url: http://paperless.home.arpa
-          username: "{{lookup('env', 'PAPERLESS_ADMIN_USER')}}"
-          password: "{{lookup('env', 'PAPERLESS_ADMIN_PASSWORD')}}"
+          username: "{{ vault_admin_users.paperless_user }}"
+          password: "{{ vault_admin_users.paperless_password }}"

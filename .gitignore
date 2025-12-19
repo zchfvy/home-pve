@@ -8,3 +8,8 @@ creds
 *.tfstate.*.backup
 *.pem
 vpns
+
+# Secrets
+secrets/infrastructure.env
+secrets/.vault-pass.age
+secrets/ansible/group_vars/all/vault.yml.decrypted

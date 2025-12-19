@@ -4,5 +4,6 @@ module "lxc_portal" {
   node_name = "portal"
   
   proxmox_node_name = var.proxmox_node_name
+  dedicated_memory = 1024
   disk_size = 7
 }

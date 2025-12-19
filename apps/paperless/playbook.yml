@@ -14,7 +14,7 @@
    - name: Mount docs share
      become: true
      ansible.posix.mount:
-       src: "{{lookup('env', 'SHARE_PAPERLESS')}}"
+       src: "{{ vault_nfs.share_paperless }}"
        path: /mnt/paperless
        opts: rw,sync,hard,nolock
        state: mounted
@@ -22,7 +22,7 @@
    - name: Mount main share for ingest
      become: true
      ansible.posix.mount:
-       src: "{{lookup('env', 'SHARE_GENERAL')}}/paperless"
+       src: "{{ vault_nfs.share_general }}/paperless"
        path: /mnt/shared
        opts: rw,sync,hard,nolock
        state: mounted

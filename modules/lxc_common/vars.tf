@@ -32,4 +32,5 @@ variable "passthrough_video" {
 }
 
 variable "passthrough_video_group" {
+  default = null
 }
