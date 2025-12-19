@@ -1,0 +1,25 @@
+---
+# Docker installation role
+
+- name: Remove default Ubuntu Docker packages
+  become: true
+  ansible.builtin.apt:
+    pkg: "{{ docker_packages_remove }}"
+    state: absent
+
+- name: Add Docker repository
+  become: true
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: deb
+    uris: "https://download.docker.com/linux/ubuntu"
+    suites: "{{ ansible_distribution_release }}"
+    components: stable
+    signed_by: "https://download.docker.com/linux/ubuntu/gpg"
+
+- name: Install Docker packages
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    pkg: "{{ docker_extra_packages + docker_packages }}"
+    state: present

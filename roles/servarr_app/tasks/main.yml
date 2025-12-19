@@ -1,0 +1,80 @@
+---
+# Servarr application role (Prowlarr, Radarr, Sonarr)
+
+- name: Install dependencies for {{ app_name }}
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    pkg: "{{ servarr_packages }}"
+    state: present
+
+- name: Create {{ app_name }} user
+  become: true
+  ansible.builtin.user:
+    name: "{{ app_name }}"
+    groups: "{{ servarr_group }}"
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+
+- name: Check if {{ app_name }} is already installed
+  ansible.builtin.stat:
+    path: "{{ servarr_install_dir }}/{{ app_name | capitalize }}"
+  register: app_installed
+
+- name: Download and install {{ app_name }}
+  become: true
+  when: not app_installed.stat.exists
+  block:
+    - name: Create temp directory
+      ansible.builtin.tempfile:
+        state: directory
+      register: temp_dir
+
+    - name: Download {{ app_name }}
+      ansible.builtin.get_url:
+        url: "{{ app_download_url | default(servarr_download_urls[app_name]) }}"
+        dest: "{{ temp_dir.path }}/{{ app_name }}.tar.gz"
+        mode: "0644"
+
+    - name: Extract {{ app_name }}
+      ansible.builtin.unarchive:
+        src: "{{ temp_dir.path }}/{{ app_name }}.tar.gz"
+        dest: "{{ servarr_install_dir }}"
+        remote_src: true
+
+    - name: Set ownership for {{ app_name }}
+      ansible.builtin.file:
+        path: "{{ servarr_install_dir }}/{{ app_name | capitalize }}"
+        owner: "{{ app_name }}"
+        group: "{{ app_name }}"
+        recurse: true
+
+    - name: Clean up temp directory
+      ansible.builtin.file:
+        path: "{{ temp_dir.path }}"
+        state: absent
+
+- name: Ensure {{ app_name }} data directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ servarr_data_dir }}/{{ app_name }}"
+    state: directory
+    owner: "{{ app_name }}"
+    group: "{{ app_name }}"
+    mode: "0755"
+
+- name: Install systemd unit for {{ app_name }}
+  become: true
+  ansible.builtin.template:
+    src: servarr.service.j2
+    dest: "/etc/systemd/system/{{ app_name }}.service"
+    mode: "0644"
+
+- name: Ensure {{ app_name }} service is running
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ app_name }}"
+    daemon_reload: true
+    enabled: true
+    state: started

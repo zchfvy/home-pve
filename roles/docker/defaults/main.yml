@@ -1,0 +1,16 @@
+---
+# Docker role defaults
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_packages_remove:
+  - docker.io
+
+docker_extra_packages:
+  - apparmor
+  - apparmor-utils
