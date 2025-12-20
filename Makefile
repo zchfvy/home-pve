@@ -1,105 +1,132 @@
 SHELL=/bin/bash
 
-# Variables
-TERRAGRUNT = ../../secrets/scripts/terragrunt-with-secrets.sh apply
+# =============================================================================
+# Service Configuration
+# =============================================================================
+
+# All services - single source of truth
+SERVICES = immich paperless portal qbittorent plex jellyfin servarr
+
+# =============================================================================
+# Tool Configuration
+# =============================================================================
+
+# Terragrunt wrapper (handles secret decryption)
+TERRAGRUNT = ../../secrets/scripts/terragrunt-with-secrets.sh
+
+# Ansible configuration
 ANSIBLE_VAULT_ARGS = --ask-vault-pass -e @../../secrets/ansible/group_vars/all/vault.yml -e @../../secrets/ansible/group_vars/all/vars.yml
 ANSIBLE_BASE = ANSIBLE_ROLES_PATH=../../roles ansible-playbook -i inventory.yml playbook.yml $(ANSIBLE_VAULT_ARGS)
 ANSIBLE = $(ANSIBLE_BASE)
 ANSIBLE_CHECK = $(ANSIBLE_BASE) --check --diff
 
-# Help target (default)
+# Batch scripts
+BATCH_INFRA = ./secrets/scripts/batch-infra.sh
+BATCH_ANSIBLE = ./secrets/scripts/batch-ansible.sh
+DEPLOY_ALL = ./secrets/scripts/deploy-all.sh
+
+# =============================================================================
+# Help (default target)
+# =============================================================================
+
 .PHONY: help
 help:
 	@echo "Homeserver Makefile Targets"
 	@echo "==========================="
 	@echo ""
-	@echo "Infrastructure (Terraform/Terragrunt):"
-	@echo "  deploy-infra-<service>  - Provision infrastructure for a service"
+	@echo "Individual Service Operations:"
+	@echo "  plan-infra-<service>    - Show infrastructure changes (terraform plan)"
+	@echo "  deploy-infra-<service>  - Apply infrastructure (terraform apply)"
+	@echo "  deploy-app-<service>    - Deploy application (ansible-playbook)"
+	@echo "  check-app-<service>     - Dry-run application (ansible --check)"
+	@echo "  deploy-<service>        - Full deployment (infra + app)"
 	@echo ""
-	@echo "Applications (Ansible):"
-	@echo "  deploy-app-<service>    - Configure and deploy application"
-	@echo "  check-app-<service>     - Dry-run (check mode) for application"
+	@echo "Batch Operations (single passphrase prompt):"
+	@echo "  plan-infra-all          - Plan all infrastructure"
+	@echo "  apply-infra-all         - Apply all infrastructure"
+	@echo "  deploy-app-all          - Deploy all applications"
+	@echo "  check-app-all           - Dry-run all applications"
 	@echo ""
-	@echo "Full Deployment:"
-	@echo "  deploy-<service>        - Deploy both infrastructure and application"
+	@echo "Combined Operations:"
+	@echo "  plan-all                - Plan infra + check apps"
+	@echo "  deploy-all              - Full deployment: plan -> confirm -> apply -> wait -> deploy"
 	@echo ""
-	@echo "Available services: qbittorrent, portal, paperless, immich, servarr, jellyfin, plex"
+	@echo "Available services: $(SERVICES)"
 	@echo ""
 	@echo "Utilities:"
-	@echo "  check-all               - Run check mode on all services"
 	@echo "  clean-secrets           - Remove decrypted secrets file"
 	@echo "  help                    - Show this help message"
 
-# Infrastructure deployment (Terraform/Terragrunt)
-.PHONY: deploy-infra-qbittorrent deploy-infra-portal deploy-infra-paperless deploy-infra-immich
-deploy-infra-qbittorrent:
-	cd apps/qbittorent && $(TERRAGRUNT)
+# =============================================================================
+# Pattern Rules (individual service operations)
+# =============================================================================
 
-deploy-infra-portal:
-	cd apps/portal && $(TERRAGRUNT)
+# Infrastructure plan
+.PHONY: plan-infra-%
+plan-infra-%:
+	cd apps/$* && $(TERRAGRUNT) plan
 
-deploy-infra-paperless:
-	cd apps/paperless && $(TERRAGRUNT)
+# Infrastructure apply
+.PHONY: deploy-infra-%
+deploy-infra-%:
+	cd apps/$* && $(TERRAGRUNT) apply
 
-deploy-infra-immich:
-	cd apps/immich && $(TERRAGRUNT)
+# Application deploy
+.PHONY: deploy-app-%
+deploy-app-%:
+	cd apps/$* && $(ANSIBLE)
 
-# Application deployment (Ansible)
-.PHONY: deploy-app-qbittorrent deploy-app-portal deploy-app-paperless deploy-app-immich deploy-app-servarr deploy-app-jellyfin deploy-app-plex
-deploy-app-qbittorrent:
-	cd apps/qbittorent && $(ANSIBLE)
-
-deploy-app-portal:
-	cd apps/portal && $(ANSIBLE)
-
-deploy-app-paperless:
-	cd apps/paperless && $(ANSIBLE)
-
-deploy-app-immich:
-	cd apps/immich && $(ANSIBLE)
-
-deploy-app-servarr:
-	cd apps/servarr && $(ANSIBLE)
-
-deploy-app-jellyfin:
-	cd apps/jellyfin && $(ANSIBLE)
-
-deploy-app-plex:
-	cd apps/plex && $(ANSIBLE)
+# Application check (dry-run)
+.PHONY: check-app-%
+check-app-%:
+	cd apps/$* && $(ANSIBLE_CHECK)
 
 # Full service deployment (infra + app)
-.PHONY: deploy-qbittorrent deploy-portal deploy-paperless deploy-immich
-deploy-qbittorrent: deploy-infra-qbittorrent deploy-app-qbittorrent
-deploy-portal: deploy-infra-portal deploy-app-portal  
-deploy-paperless: deploy-infra-paperless deploy-app-paperless
-deploy-immich: deploy-infra-immich deploy-app-immich
+.PHONY: deploy-%
+deploy-%: deploy-infra-% deploy-app-%
+	@echo "Deployed $*"
 
-# Dry run / check mode (validates changes without applying)
-.PHONY: check-app-qbittorrent check-app-portal check-app-paperless check-app-immich check-app-servarr check-app-jellyfin check-app-plex check-all
-check-app-qbittorrent:
-	cd apps/qbittorent && $(ANSIBLE_CHECK)
+# =============================================================================
+# Batch Operations (single passphrase prompt)
+# =============================================================================
 
-check-app-portal:
-	cd apps/portal && $(ANSIBLE_CHECK)
+.PHONY: plan-infra-all
+plan-infra-all:
+	@$(BATCH_INFRA) plan $(SERVICES)
 
-check-app-paperless:
-	cd apps/paperless && $(ANSIBLE_CHECK)
+.PHONY: apply-infra-all
+apply-infra-all:
+	@$(BATCH_INFRA) apply $(SERVICES)
 
-check-app-immich:
-	cd apps/immich && $(ANSIBLE_CHECK)
+.PHONY: deploy-app-all
+deploy-app-all:
+	@$(BATCH_ANSIBLE) deploy $(SERVICES)
 
-check-app-servarr:
-	cd apps/servarr && $(ANSIBLE_CHECK)
+.PHONY: check-app-all
+check-app-all:
+	@$(BATCH_ANSIBLE) check $(SERVICES)
 
-check-app-jellyfin:
-	cd apps/jellyfin && $(ANSIBLE_CHECK)
+# =============================================================================
+# Combined Operations
+# =============================================================================
 
-check-app-plex:
-	cd apps/plex && $(ANSIBLE_CHECK)
+# Plan everything (infra + apps dry-run)
+.PHONY: plan-all
+plan-all: plan-infra-all check-app-all
 
-check-all: check-app-immich check-app-paperless check-app-servarr check-app-jellyfin check-app-plex check-app-qbittorrent check-app-portal
+# Full deployment with confirmation
+.PHONY: deploy-all
+deploy-all:
+	@$(DEPLOY_ALL) $(SERVICES)
 
+# Legacy alias
+.PHONY: check-all
+check-all: check-app-all
+
+# =============================================================================
 # Utilities
+# =============================================================================
+
 .PHONY: clean-secrets
 clean-secrets:
-	rm secrets/infrastructure.env
+	rm -f secrets/infrastructure.env
