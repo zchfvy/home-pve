@@ -7,6 +7,29 @@ ANSIBLE_BASE = ANSIBLE_ROLES_PATH=../../roles ansible-playbook -i inventory.yml 
 ANSIBLE = $(ANSIBLE_BASE)
 ANSIBLE_CHECK = $(ANSIBLE_BASE) --check --diff
 
+# Help target (default)
+.PHONY: help
+help:
+	@echo "Homeserver Makefile Targets"
+	@echo "==========================="
+	@echo ""
+	@echo "Infrastructure (Terraform/Terragrunt):"
+	@echo "  deploy-infra-<service>  - Provision infrastructure for a service"
+	@echo ""
+	@echo "Applications (Ansible):"
+	@echo "  deploy-app-<service>    - Configure and deploy application"
+	@echo "  check-app-<service>     - Dry-run (check mode) for application"
+	@echo ""
+	@echo "Full Deployment:"
+	@echo "  deploy-<service>        - Deploy both infrastructure and application"
+	@echo ""
+	@echo "Available services: qbittorrent, portal, paperless, immich, servarr, jellyfin, plex"
+	@echo ""
+	@echo "Utilities:"
+	@echo "  check-all               - Run check mode on all services"
+	@echo "  clean-secrets           - Remove decrypted secrets file"
+	@echo "  help                    - Show this help message"
+
 # Infrastructure deployment (Terraform/Terragrunt)
 .PHONY: deploy-infra-qbittorrent deploy-infra-portal deploy-infra-paperless deploy-infra-immich
 deploy-infra-qbittorrent:
