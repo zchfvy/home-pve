@@ -71,12 +71,11 @@ See `docs/SECRETS_MANAGEMENT_SUMMARY.md` for detailed documentation.
 
 ## Deployment
 
-Use the Makefile for all deployments:
+Use the Makefile for all deployments. Run `make help` to see all available targets.
+
+### Single Service Deployment
 
 ```bash
-# Show available targets
-make help
-
 # Deploy a complete service (infrastructure + application)
 make deploy-immich
 make deploy-portal
@@ -87,10 +86,50 @@ make deploy-infra-immich
 # Deploy only application configuration
 make deploy-app-immich
 
-# Dry-run to preview changes
+# Preview infrastructure changes
+make plan-infra-immich
+
+# Dry-run application changes
 make check-app-immich
-make check-all
 ```
+
+### Batch Deployment (All Services)
+
+Batch commands prompt for passphrases once and apply to all services:
+
+```bash
+# Preview all infrastructure changes (drift detection)
+make plan-infra-all
+
+# Apply all infrastructure changes
+make apply-infra-all
+
+# Deploy all applications
+make deploy-app-all
+
+# Dry-run all applications
+make check-app-all
+
+# Preview everything (infra plan + app check)
+make plan-all
+```
+
+### Full Stack Deployment
+
+Deploy everything with a single command:
+
+```bash
+make deploy-all
+```
+
+This will:
+1. Prompt for infrastructure passphrase (age)
+2. Prompt for application passphrase (ansible-vault)
+3. Show terraform plan for all services
+4. Prompt for confirmation before applying
+5. Apply all infrastructure changes
+6. Wait for VMs/LXCs to be SSH-ready (2 min timeout)
+7. Deploy all applications via Ansible
 
 ## Maintenance
 
