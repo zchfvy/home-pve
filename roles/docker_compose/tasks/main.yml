@@ -1,0 +1,92 @@
+---
+# Docker Compose deployment role
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - compose_app_name is defined
+      - compose_app_dir is defined
+      - compose_src is defined
+    fail_msg: "Required variables: compose_app_name, compose_app_dir, compose_src"
+    quiet: true
+
+- name: Create app directory for {{ compose_app_name }}
+  become: true
+  ansible.builtin.file:
+    path: "{{ compose_app_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy compose files for {{ compose_app_name }}
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ compose_app_dir }}"
+    src: "{{ compose_src }}"
+  register: compose_files_result
+
+- name: Template env file for {{ compose_app_name }}
+  become: true
+  ansible.builtin.template:
+    dest: "{{ compose_app_dir }}/{{ compose_env_dest | default('.env') }}"
+    src: "{{ compose_env_src }}"
+    mode: "0600"
+  when: compose_env_src is defined
+  register: compose_env_result
+
+- name: Create required directories for {{ compose_app_name }}
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.owner | default(omit) }}"
+    group: "{{ item.group | default(omit) }}"
+  loop: "{{ compose_required_dirs | default([]) }}"
+  when: compose_required_dirs is defined
+
+- name: Deploy {{ compose_app_name }} containers
+  become: true
+  when: compose_state != 'absent'
+  block:
+    - name: Pull {{ compose_app_name }} images
+      ansible.builtin.command:
+        cmd: "{{ compose_command }} pull"
+        chdir: "{{ compose_app_dir }}"
+      register: pull_result
+      retries: "{{ compose_pull_retries }}"
+      delay: "{{ compose_pull_delay }}"
+      until: pull_result.rc == 0
+      when: compose_pull | bool
+      changed_when: "'Pulled' in pull_result.stdout or 'Downloaded' in pull_result.stdout"
+
+    - name: Start {{ compose_app_name }} containers
+      ansible.builtin.command:
+        cmd: "{{ compose_command }} up -d"
+        chdir: "{{ compose_app_dir }}"
+      register: up_result
+      changed_when: "'Started' in up_result.stdout or 'Created' in up_result.stdout"
+
+  rescue:
+    - name: Display error for {{ compose_app_name }}
+      ansible.builtin.debug:
+        msg: "Failed to deploy {{ compose_app_name }}: {{ ansible_failed_result.msg | default('Unknown error') }}"
+
+    - name: Fail with error details
+      ansible.builtin.fail:
+        msg: "Docker Compose deployment failed for {{ compose_app_name }}"
+
+- name: Stop {{ compose_app_name }} containers
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ compose_command }} down"
+    chdir: "{{ compose_app_dir }}"
+  when: compose_state == 'absent'
+  changed_when: true
+
+- name: Restart {{ compose_app_name }} containers
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ compose_command }} restart"
+    chdir: "{{ compose_app_dir }}"
+  when: compose_state == 'restarted'
+  changed_when: true

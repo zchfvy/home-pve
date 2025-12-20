@@ -1,4 +1,4 @@
-- name: Setup Paperless Storage
+- name: Setup Paperless
   hosts: paperless
   roles:
     - role: nfs_mount
@@ -11,46 +11,17 @@
         nfs_src: "{{ nfs_shares.general }}/paperless"
         nfs_path: /mnt/shared
     - role: docker
-
-- name: Deploy Paperless
-  hosts: paperless
-  tasks:
-    - name: Add docker compose scripts
-      become: true
-      ansible.builtin.copy:
-        dest: /srv/paperless-app
-        src: ./paperless/
-
-    - name: Add env file
-      become: true
-      ansible.builtin.template:
-        dest: /srv/paperless-app/docker-compose.env
-        src: ./paperless/docker-compose.env
-
-    - name: Ensure data dir
-      become: true
-      ansible.builtin.file:
-        path: /mnt/paperless/data
-        mode: "0755"
-        state: directory
-
-    - name: Ensure pgdata dir
-      become: true
-      ansible.builtin.file:
-        path: /mnt/paperless/pgdata
-        mode: "0700"
-        state: directory
-
-    - name: Ensure media dir
-      become: true
-      ansible.builtin.file:
-        path: /mnt/paperless/media
-        mode: "0755"
-        state: directory
-
-    - name: Launch paperless
-      become: true
-      ansible.builtin.shell:
-        cmd: |
-          cd /srv/paperless-app
-          {{ docker.compose_command }} pull && {{ docker.compose_command }} up -d
+    - role: docker_compose
+      vars:
+        compose_app_name: paperless
+        compose_app_dir: /srv/paperless-app
+        compose_src: ./paperless/
+        compose_env_src: ./paperless/docker-compose.env
+        compose_env_dest: docker-compose.env
+        compose_required_dirs:
+          - path: /mnt/paperless/data
+            mode: "0755"
+          - path: /mnt/paperless/pgdata
+            mode: "0700"
+          - path: /mnt/paperless/media
+            mode: "0755"

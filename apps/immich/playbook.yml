@@ -7,23 +7,9 @@
         nfs_path: /mnt/immich
         nfs_group: media
     - role: docker
-
-  tasks:
-    - name: Add immich compose scripts
-      become: true
-      ansible.builtin.copy:
-        dest: /srv/immich-app
-        src: ./immich/
-
-    - name: Add env file
-      become: true
-      ansible.builtin.template:
-        dest: /srv/immich-app/.env
-        src: ./immich/.env
-
-    - name: Launch immich
-      become: true
-      ansible.builtin.shell:
-        cmd: |
-          cd /srv/immich-app
-          {{ docker.compose_command }} pull && {{ docker.compose_command }} up -d
+    - role: docker_compose
+      vars:
+        compose_app_name: immich
+        compose_app_dir: /srv/immich-app
+        compose_src: ./immich/
+        compose_env_src: ./immich/.env

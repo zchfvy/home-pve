@@ -1,0 +1,16 @@
+---
+# Docker Compose handlers
+
+- name: Restart compose stack
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ compose_command }} restart"
+    chdir: "{{ compose_app_dir }}"
+  changed_when: true
+
+- name: Recreate compose stack
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ compose_command }} up -d --force-recreate"
+    chdir: "{{ compose_app_dir }}"
+  changed_when: true

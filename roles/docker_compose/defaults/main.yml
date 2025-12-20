@@ -1,0 +1,15 @@
+---
+# Docker Compose role defaults
+
+# Docker compose command (v2 plugin style)
+compose_command: "docker compose"
+
+# Default state for containers
+compose_state: "present"  # present, absent, or restarted
+
+# Pull policy
+compose_pull: true
+
+# Retry settings for network operations
+compose_pull_retries: 3
+compose_pull_delay: 5
