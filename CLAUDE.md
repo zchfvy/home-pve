@@ -24,8 +24,12 @@ make apply-infra-all           # Apply all infrastructure
 make deploy-app-all            # Deploy all applications
 make deploy-all                # Full stack: plan → confirm → apply → wait → deploy
 
+# Network/DNS
+make deploy-dns                # Deploy Pi-hole DNS configuration
+make check-dns                 # Dry-run DNS configuration
+
 # Available services
-# immich, paperless, portal, qbittorent, plex, jellyfin, servarr
+# immich, paperless, portal, qbittorent, plex, jellyfin, servarr, nginx
 ```
 
 ### Direct Commands
@@ -58,6 +62,7 @@ Makefile → Secrets Decryption → Terragrunt/Terraform → Proxmox VMs/LXCs
   - `playbook.yml` - Ansible configuration
   - `inventory.yml` - Auto-generated from Terraform
   - `<service>/` - Docker compose files and configs
+- `network/` - Network infrastructure (Pi-hole DNS configuration)
 - `roles/` - Reusable Ansible roles (docker, docker_compose, nfs_mount, systemd_service)
 - `modules/` - Terraform modules (vm_common, lxc_common)
 - `secrets/` - Encrypted credentials (age for infra, ansible-vault for apps)
@@ -89,6 +94,7 @@ Two-tier system:
 1. Create `apps/<service>/main.tf` using vm_common or lxc_common module
 2. Create `apps/<service>/playbook.yml` using existing roles
 3. Add service name to `SERVICES` variable in Makefile
+4. If proxied through nginx, add to `proxy_services` in `secrets/ansible/group_vars/all/vars.yml`
 
 ### Playbook Structure
 
@@ -122,3 +128,4 @@ module "vm_<service>" {
 - All secrets must be encrypted before commit (age or ansible-vault)
 - Terraform state files and SSH keys are git-ignored
 - VMs use Ubuntu 22.04 (Jammy) as base image
+- DNS routing: `home.arpa` domains resolve directly to services (via DHCP); external domains and simple names route through nginx proxy. This ensures upstream connections work with native ports.
