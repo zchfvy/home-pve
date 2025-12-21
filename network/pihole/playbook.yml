@@ -1,0 +1,25 @@
+- name: Configure Pi-hole DNS for Nginx Proxy
+  hosts: pihole
+  vars:
+    nginx_host: "{{ network.nginx_host }}"
+    domain_name: "{{ network.domain_name }}"
+    internal_domain: "{{ network.internal_domain }}"
+    service_names: "{{ proxy_services.keys() | list }}"
+
+  tasks:
+    - name: Deploy nginx proxy CNAME configuration
+      become: true
+      ansible.builtin.template:
+        src: templates/nginx-cnames.conf.j2
+        dest: /etc/dnsmasq.d/10-nginx-proxy.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart pihole-FTL
+
+  handlers:
+    - name: Restart pihole-FTL
+      become: true
+      ansible.builtin.service:
+        name: pihole-FTL
+        state: restarted

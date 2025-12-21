@@ -5,7 +5,7 @@ SHELL=/bin/bash
 # =============================================================================
 
 # All services - single source of truth
-SERVICES = immich paperless portal qbittorent plex jellyfin servarr
+SERVICES = immich paperless portal qbittorent plex jellyfin servarr nginx
 
 # =============================================================================
 # Tool Configuration
@@ -50,6 +50,10 @@ help:
 	@echo "Combined Operations:"
 	@echo "  plan-all                - Plan infra + check apps"
 	@echo "  deploy-all              - Full deployment: plan -> confirm -> apply -> wait -> deploy"
+	@echo ""
+	@echo "Network Operations:"
+	@echo "  deploy-dns              - Deploy Pi-hole DNS configuration"
+	@echo "  check-dns               - Dry-run Pi-hole DNS configuration"
 	@echo ""
 	@echo "Available services: $(SERVICES)"
 	@echo ""
@@ -122,6 +126,22 @@ deploy-all:
 # Legacy alias
 .PHONY: check-all
 check-all: check-app-all
+
+# =============================================================================
+# Network Configuration
+# =============================================================================
+
+# Network ansible args (same relative path structure as apps)
+NETWORK_ANSIBLE_ARGS = -e @../../secrets/ansible/group_vars/all/vars.yml --ask-vault-pass
+NETWORK_ANSIBLE = ansible-playbook -i inventory.yml playbook.yml $(NETWORK_ANSIBLE_ARGS)
+
+.PHONY: deploy-dns
+deploy-dns:
+	cd network/pihole && $(NETWORK_ANSIBLE)
+
+.PHONY: check-dns
+check-dns:
+	cd network/pihole && $(NETWORK_ANSIBLE) --check --diff
 
 # =============================================================================
 # Utilities

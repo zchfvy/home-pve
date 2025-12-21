@@ -28,6 +28,7 @@ ansible-galaxy collection install cloud.terraform
 ```
 .
 ├── apps/       # Service definitions (terraform + ansible per service)
+├── network/    # Network infrastructure config (Pi-hole DNS, etc.)
 ├── roles/      # Reusable Ansible roles
 ├── secrets/    # Encrypted secrets (infrastructure + application)
 ├── modules/    # Terraform modules
@@ -131,6 +132,33 @@ This will:
 6. Wait for VMs/LXCs to be SSH-ready (2 min timeout)
 7. Deploy all applications via Ansible
 
+### Reverse Proxy and DNS
+
+The infrastructure includes an nginx reverse proxy for SNI-based routing on port 80.
+
+**Deploy nginx reverse proxy:**
+```bash
+# Deploy nginx LXC and application
+make deploy-nginx
+
+# Or separately:
+make deploy-infra-nginx  # Create LXC container
+make deploy-app-nginx    # Configure nginx
+```
+
+**Configure Pi-hole DNS:**
+```bash
+# Deploy CNAME records to Pi-hole
+make deploy-dns
+```
+
+This configures Pi-hole to route all service hostnames through nginx:
+- Simple names: `jellyfin`, `radarr`, etc.
+- Internal FQDNs: `jellyfin.home.arpa`, etc.
+- External domains: `jellyfin.jasonxun2020.com`, etc.
+
+See `docs/REVERSE_PROXY_SETUP.md` for detailed documentation.
+
 ## Maintenance
 
 ### Proxmox Certificate Renewal
@@ -155,5 +183,6 @@ Run this on each node in the cluster.
 ## Documentation
 
 Additional documentation in `docs/`:
+- `REVERSE_PROXY_SETUP.md` - Nginx reverse proxy and Pi-hole DNS configuration
 - `SECRETS_MANAGEMENT_SUMMARY.md` - Secrets architecture and usage
 - `CLEANUP_ANALYSIS.md` - Codebase analysis and improvement plan
