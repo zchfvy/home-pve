@@ -1,0 +1,17 @@
+# Proxmox connection configuration
+# Copy this to terraform.tfvars and update with your values
+#
+# Note: terraform.tfvars is gitignored - this template can be committed
+
+proxmox_url       = "https://your-proxmox-host:8006/"
+proxmox_node_name = "your-node-name"
+
+# Terraform state storage (NFS mount)
+# State is stored on NAS for persistence across repo clones/losses
+state_nfs_mount   = "/mnt/nas"
+state_path        = "/mnt/nas/terraform-state/homeserver"
+
+# SSH key for all VMs/LXCs
+# Generate with: ssh-keygen -t rsa -b 4096 -f ~/.ssh/homeserver -N ""
+ssh_public_key_file  = "~/.ssh/homeserver.pub"
+ssh_private_key_file = "~/.ssh/homeserver"

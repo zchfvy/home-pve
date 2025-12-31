@@ -22,3 +22,15 @@ variable "disk_size" {
 variable "cpu_cores" {
   default = 1
 }
+
+variable "ssh_public_key_file" {
+  description = "Path to SSH public key file"
+  default     = "~/.ssh/homeserver.pub"
+  sensitive   = true
+}
+
+variable "ssh_private_key_file" {
+  description = "Path to SSH private key file (for ansible)"
+  default     = "~/.ssh/homeserver"
+  sensitive   = true
+}

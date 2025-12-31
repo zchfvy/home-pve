@@ -3,6 +3,8 @@
 # Session-based secret caching for batch operations
 # Source this file to use start_session and end_session functions
 #
+# NOTE: This script requires bash. Run with: bash -c 'source ... && start_session'
+#
 # Usage:
 #   source session-secrets.sh
 #   start_session  # Prompts for age passphrase, caches decrypted secrets
@@ -32,7 +34,7 @@ start_session() {
     export INFRA_SECRETS_FILE="$_SESSION_DIR/infrastructure.env"
 
     echo "Decrypting infrastructure secrets..." >&2
-    if ! age --decrypt "$infra_age" > "$INFRA_SECRETS_FILE" 2>/dev/null; then
+    if ! age --decrypt "$infra_age" > "$INFRA_SECRETS_FILE"; then
         echo "ERROR: Failed to decrypt infrastructure secrets" >&2
         rm -rf "$_SESSION_DIR"
         return 1

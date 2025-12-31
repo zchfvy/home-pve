@@ -32,8 +32,11 @@ fi
 source "$SCRIPT_DIR/session-secrets.sh"
 start_session
 
-# Track failures
+# Track failures and plan totals
 failed_services=()
+total_add=0
+total_change=0
+total_destroy=0
 
 for service in $services; do
     app_dir="$ROOT_DIR/apps/$service"
@@ -54,15 +57,46 @@ for service in $services; do
     echo "  $command: $service"
     echo "=========================================="
 
-    if ! (cd "$app_dir" && terragrunt "$command"); then
+    # Capture output while displaying it
+    output=$(cd "$app_dir" && terragrunt "$command" 2>&1 | tee /dev/stderr) || {
         echo "ERROR: $command failed for $service" >&2
         failed_services+=("$service")
-        # Continue to next service instead of failing immediately
+        continue
+    }
+
+    # Parse plan summary if this is a plan command
+    if [[ "$command" == "plan" ]]; then
+        # Strip ANSI color codes for parsing
+        clean_output=$(echo "$output" | sed 's/\x1b\[[0-9;]*m//g')
+
+        # Match "Plan: X to add, Y to change, Z to destroy"
+        if echo "$clean_output" | grep -q "Plan:"; then
+            add=$(echo "$clean_output" | grep -oP 'Plan: \K\d+(?= to add)' || true)
+            change=$(echo "$clean_output" | grep -oP '\d+(?= to change)' || true)
+            destroy=$(echo "$clean_output" | grep -oP '\d+(?= to destroy)' || true)
+
+            if [[ -n "$add" && -n "$change" && -n "$destroy" && "$total_add" != "unknown" && "$total_change" != "unknown" && "$total_destroy" != "unknown" ]]; then
+                total_add=$((total_add + add))
+                total_change=$((total_change + change))
+                total_destroy=$((total_destroy + destroy))
+            elif [[ -z "$add" || -z "$change" || -z "$destroy" ]]; then
+                # Parsing failed, mark totals as unknown
+                total_add="unknown"
+                total_change="unknown"
+                total_destroy="unknown"
+            fi
+        fi
     fi
 done
 
 echo ""
 echo "=========================================="
+
+if [[ "$command" == "plan" ]]; then
+    echo ""
+    echo "  TOTAL: $total_add to add, $total_change to change, $total_destroy to destroy"
+    echo ""
+fi
 
 if [[ ${#failed_services[@]} -gt 0 ]]; then
     echo "FAILED services: ${failed_services[*]}"

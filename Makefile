@@ -58,6 +58,7 @@ help:
 	@echo "Available services: $(SERVICES)"
 	@echo ""
 	@echo "Utilities:"
+	@echo "  import-state            - Import existing VMs/LXCs into Terraform state"
 	@echo "  clean-secrets           - Remove decrypted secrets file"
 	@echo "  help                    - Show this help message"
 
@@ -146,6 +147,10 @@ check-dns:
 # =============================================================================
 # Utilities
 # =============================================================================
+
+.PHONY: import-state
+import-state:
+	@./secrets/scripts/import-state.sh
 
 .PHONY: clean-secrets
 clean-secrets:

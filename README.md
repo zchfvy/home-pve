@@ -183,6 +183,7 @@ Run this on each node in the cluster.
 ## Documentation
 
 Additional documentation in `docs/`:
+- `STATE_RECOVERY.md` - Recovering from lost Terraform state
 - `REVERSE_PROXY_SETUP.md` - Nginx reverse proxy and Pi-hole DNS configuration
 - `SECRETS_MANAGEMENT_SUMMARY.md` - Secrets architecture and usage
 - `CLEANUP_ANALYSIS.md` - Codebase analysis and improvement plan

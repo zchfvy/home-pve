@@ -19,7 +19,7 @@ resource "proxmox_virtual_environment_container" "ubuntu_container" {
 
     user_account {
       keys = [
-        trimspace(tls_private_key.ubuntu_container_key.public_key_openssh)
+        trimspace(file(pathexpand(var.ssh_public_key_file)))
       ]
       password = random_password.ubuntu_container_password.result
     }
@@ -64,6 +64,15 @@ resource "proxmox_virtual_environment_container" "ubuntu_container" {
       gid  = var.passthrough_video_group
     }
   }
+
+  # Don't replace container for these changes:
+  # - initialization: only used at initial creation
+  # - disk: resizing requires in-place resize via Proxmox, not replacement
+  #         To resize: pct resize <VMID> rootfs <NEW_SIZE>G
+  #         Then update disk_size in terraform to match
+  lifecycle {
+    ignore_changes = [initialization, disk]
+  }
 }
 
 resource "random_password" "ubuntu_container_password" {
@@ -72,21 +81,9 @@ resource "random_password" "ubuntu_container_password" {
   special          = true
 }
 
-resource "tls_private_key" "ubuntu_container_key" {
-  algorithm = "RSA"
-  rsa_bits  = 2048
-}
-
 output "ubuntu_container_password" {
   value     = random_password.ubuntu_container_password.result
   sensitive = true
-}
-
-# TODO : just use a global key file for terraform
-resource "local_file" "private_key" {
-  content = tls_private_key.ubuntu_container_key.private_key_pem
-  filename = "${path.cwd}/key.pem"
-  file_permission = "0600"
 }
 
 resource "ansible_host" "ubuntu_host" {
@@ -95,7 +92,7 @@ resource "ansible_host" "ubuntu_host" {
   variables = {
     ansible_host = var.node_ip == "dhcp" ? "${var.node_name}.${var.internal_dns_root}" : var.node_ip
     ansible_user = "root"
-    ansible_ssh_private_key_file = local_file.private_key.filename
+    ansible_ssh_private_key_file = pathexpand(var.ssh_private_key_file)
     ansible_password = random_password.ubuntu_container_password.result
     ansible_ssh_common_args = "-o StrictHostKeyChecking=no"
   }

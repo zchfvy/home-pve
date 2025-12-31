@@ -1,4 +1,5 @@
 provider.tf
+backend.tf
 terraform.tfvars
 creds
 .terraform
@@ -7,6 +8,7 @@ creds
 *.tfstate.backup
 *.tfstate.*.backup
 *.pem
+*.pem.pub
 vpns
 
 # Secrets

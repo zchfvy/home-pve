@@ -18,7 +18,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     user_account {
       username = "ubuntu"
       keys = [
-        trimspace(tls_private_key.ubuntu_vm_key.public_key_openssh)
+        trimspace(file(pathexpand(var.ssh_public_key_file)))
       ]
       password = random_password.ubuntu_vm_password.result
     }
@@ -37,7 +37,8 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   }
 
   cpu {
-    cores = var.cpu_cores
+    cores        = var.cpu_cores
+    architecture = "x86_64"
   }
 
   memory {
@@ -48,6 +49,12 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     enabled = true
     bridge = "vmbr0"
   }
+
+  # Don't replace VM when SSH keys/passwords change
+  # These are only used at initial creation
+  lifecycle {
+    ignore_changes = [initialization]
+  }
 }
 
 resource "random_password" "ubuntu_vm_password" {
@@ -56,21 +63,9 @@ resource "random_password" "ubuntu_vm_password" {
   special          = true
 }
 
-resource "tls_private_key" "ubuntu_vm_key" {
-  algorithm = "RSA"
-  rsa_bits  = 2048
-}
-
 output "ubuntu_vm_password" {
   value     = random_password.ubuntu_vm_password.result
   sensitive = true
-}
-
-# TODO : just use a global key file for terraform
-resource "local_file" "private_key" {
-  content = tls_private_key.ubuntu_vm_key.private_key_pem
-  filename = "${path.cwd}/key.pem"
-  file_permission = "0600"
 }
 
 resource "ansible_host" "ubuntu_host" {
@@ -79,7 +74,7 @@ resource "ansible_host" "ubuntu_host" {
   variables = {
     ansible_host = var.node_ip == "dhcp" ? "${var.node_name}.${var.internal_dns_root}" : var.node_ip
     ansible_user = "ubuntu"
-    ansible_ssh_private_key_file = local_file.private_key.filename
+    ansible_ssh_private_key_file = pathexpand(var.ssh_private_key_file)
     ansible_password = random_password.ubuntu_vm_password.result
     ansible_ssh_common_args = "-o StrictHostKeyChecking=no"
   }

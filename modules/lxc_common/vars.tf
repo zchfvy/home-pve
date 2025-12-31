@@ -34,3 +34,15 @@ variable "passthrough_video" {
 variable "passthrough_video_group" {
   default = null
 }
+
+variable "ssh_public_key_file" {
+  description = "Path to SSH public key file"
+  default     = "~/.ssh/homeserver.pub"
+  sensitive   = true
+}
+
+variable "ssh_private_key_file" {
+  description = "Path to SSH private key file (for ansible)"
+  default     = "~/.ssh/homeserver"
+  sensitive   = true
+}

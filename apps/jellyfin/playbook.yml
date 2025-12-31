@@ -14,7 +14,22 @@
         pkg: curl
         state: present
 
-    - name: Run jellyfin install
+    - name: Download jellyfin install script
       become: true
-      ansible.builtin.shell:
-        cmd: curl https://repo.jellyfin.org/install-debuntu.sh | sudo bash
+      ansible.builtin.get_url:
+        url: https://repo.jellyfin.org/install-debuntu.sh
+        dest: /tmp/install-jellyfin.sh
+        mode: '0755'
+
+    - name: Run jellyfin install (this may take a few minutes)
+      become: true
+      ansible.builtin.command:
+        cmd: /tmp/install-jellyfin.sh
+      environment:
+        SKIP_CONFIRM: "true"
+      register: jellyfin_install
+      changed_when: "'Installed' in jellyfin_install.stdout or 'Upgraded' in jellyfin_install.stdout"
+
+    - name: Show jellyfin install output
+      ansible.builtin.debug:
+        var: jellyfin_install.stdout_lines
