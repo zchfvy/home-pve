@@ -1,0 +1,159 @@
+storage:
+  type: sqlite
+  path: /data/gatus.db
+
+ui:
+  title: Homeserver Status
+  header: Homeserver Services
+
+alerting:
+  ntfy:
+    topic: homeserver-alerts
+    url: http://ntfy:80
+    priority: 4
+    default-alert:
+      enabled: true
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+
+endpoints:
+  # Media Services
+  - name: Jellyfin
+    group: Media
+    url: http://jellyfin.home.arpa:8096
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+      - "[RESPONSE_TIME] < 5000"
+    alerts:
+      - type: ntfy
+
+  - name: Radarr
+    group: Media
+    url: http://servarr.home.arpa:7878
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  - name: Sonarr
+    group: Media
+    url: http://servarr.home.arpa:8989
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  - name: Prowlarr
+    group: Media
+    url: http://servarr.home.arpa:9696
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  - name: qBittorrent
+    group: Media
+    url: http://qbittorrent.home.arpa:8080
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  # Applications
+  - name: Immich
+    group: Applications
+    url: http://immich.home.arpa:2283/api/server/ping
+    interval: 60s
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: Paperless
+    group: Applications
+    url: http://paperless.home.arpa
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  - name: Portal
+    group: Applications
+    url: http://portal.home.arpa:3000
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  # Infrastructure
+  - name: Proxmox
+    group: Infrastructure
+    url: https://mariner.home.arpa:8006
+    interval: 60s
+    client:
+      insecure: true
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  - name: Pi-hole
+    group: Infrastructure
+    url: http://pihole.home.arpa/admin
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  - name: TrueNAS
+    group: Infrastructure
+    url: http://oddesy.home.arpa
+    interval: 60s
+    conditions:
+      - "[STATUS] < 400"
+    alerts:
+      - type: ntfy
+
+  - name: Nginx
+    group: Infrastructure
+    url: http://nginx.home.arpa/health
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  # Monitoring Stack
+  - name: Grafana
+    group: Monitoring
+    url: http://grafana:3000/api/health
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: Prometheus
+    group: Monitoring
+    url: http://prometheus:9090/-/healthy
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: ntfy
+
+  - name: ntfy
+    group: Monitoring
+    url: http://ntfy:80/v1/health
+    interval: 30s
+    conditions:
+      - "[STATUS] == 200"

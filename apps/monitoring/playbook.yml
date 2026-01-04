@@ -1,0 +1,10 @@
+- name: Setup Monitoring Stack
+  hosts: monitoring
+  roles:
+    - role: docker
+    - role: docker_compose
+      vars:
+        compose_app_name: monitoring
+        compose_app_dir: /srv/monitoring
+        compose_src: ./monitoring/
+        compose_env_src: ./monitoring/.env

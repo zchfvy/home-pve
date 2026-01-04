@@ -1,0 +1,14 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: ntfy
+    receivers:
+      - uid: ntfy-homeserver
+        type: webhook
+        settings:
+          url: http://ntfy:80/homeserver-alerts
+          httpMethod: POST
+          username: ""
+          password: ""
+        disableResolveMessage: false

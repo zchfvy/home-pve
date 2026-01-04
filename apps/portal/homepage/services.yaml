@@ -2,6 +2,35 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
 
+- Monitoring:
+    - Gatus:
+        icon: gatus.png
+        href: http://uptime.jasonxun2020.com/
+        description: Service availability monitoring
+        widget:
+          type: gatus
+          url: http://monitoring.home.arpa:3001
+    - Grafana:
+        icon: grafana.png
+        href: http://grafana.jasonxun2020.com/
+        description: Metrics dashboards
+        widget:
+          type: grafana
+          url: http://monitoring.home.arpa:3000
+          username: "{{ vault_admin_users.grafana_user }}"
+          password: "{{ vault_admin_users.grafana_password }}"
+    - Prometheus:
+        icon: prometheus.png
+        href: http://prometheus.jasonxun2020.com/
+        description: Metrics database
+        widget:
+          type: prometheus
+          url: http://monitoring.home.arpa:9090
+    - ntfy:
+        icon: ntfy.png
+        href: http://ntfy.jasonxun2020.com/
+        description: Push notifications
+
 - Infrastructure:
     - Proxmox VE:
         icon: proxmox.png

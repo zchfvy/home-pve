@@ -5,7 +5,7 @@ SHELL=/bin/bash
 # =============================================================================
 
 # All services - single source of truth
-SERVICES = immich paperless portal qbittorent plex jellyfin servarr nginx
+SERVICES = immich paperless portal qbittorent plex jellyfin servarr nginx monitoring
 
 # =============================================================================
 # Tool Configuration
