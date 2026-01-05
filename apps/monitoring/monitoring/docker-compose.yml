@@ -93,6 +93,17 @@ services:
       - '--path.rootfs=/rootfs'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
 
+  pve-exporter:
+    image: prompve/prometheus-pve-exporter:3.4.5
+    container_name: pve-exporter
+    restart: unless-stopped
+    ports:
+      - "9221:9221"
+    environment:
+      - PVE_USER=${PVE_USER}
+      - PVE_PASSWORD=${PVE_PASSWORD}
+      - PVE_VERIFY_SSL=false
+
 volumes:
   gatus-data:
   prometheus-data:
