@@ -1,6 +1,8 @@
 storage:
   type: sqlite
   path: /data/gatus.db
+  maximum-number-of-results: 50000
+  maximum-number-of-events: 1000
 
 ui:
   title: Homeserver Status

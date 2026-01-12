@@ -66,6 +66,13 @@
       register: up_result
       changed_when: "'Started' in up_result.stdout or 'Created' in up_result.stdout"
 
+    - name: Restart {{ compose_app_name }} containers (config changed)
+      ansible.builtin.command:
+        cmd: "{{ compose_command }} up -d --force-recreate"
+        chdir: "{{ compose_app_dir }}"
+      when: compose_files_result.changed or (compose_env_result.changed | default(false))
+      changed_when: true
+
   rescue:
     - name: Display error for {{ compose_app_name }}
       ansible.builtin.debug:
