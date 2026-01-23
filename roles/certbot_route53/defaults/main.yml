@@ -1,0 +1,6 @@
+---
+certbot_email: ""
+certbot_domain: ""
+certbot_wildcard: true
+certbot_cert_path: /etc/letsencrypt/live
+certbot_staging: false  # Set to true for testing to avoid rate limits

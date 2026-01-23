@@ -5,14 +5,14 @@
 - Monitoring:
     - Gatus:
         icon: gatus.png
-        href: http://uptime.jasonxun2020.com/
+        href: https://uptime.jasonxun2020.com/
         description: Service availability monitoring
         widget:
           type: gatus
           url: http://monitoring.home.arpa:3001
     - Grafana:
         icon: grafana.png
-        href: http://grafana.jasonxun2020.com/
+        href: https://grafana.jasonxun2020.com/
         description: Metrics dashboards
         widget:
           type: grafana
@@ -21,24 +21,24 @@
           password: "{{ vault_admin_users.grafana_password }}"
     - Prometheus:
         icon: prometheus.png
-        href: http://prometheus.jasonxun2020.com/
+        href: https://prometheus.jasonxun2020.com/
         description: Metrics database
         widget:
           type: prometheus
           url: http://monitoring.home.arpa:9090
     - ntfy:
         icon: ntfy.png
-        href: http://ntfy.jasonxun2020.com/
+        href: https://ntfy.jasonxun2020.com/
         description: Push notifications
 
 - Infrastructure:
     - Proxmox VE:
         icon: proxmox.png
-        href: https://mariner.home.arpa:8006
+        href: https://proxmox.{{ network.domain_name }}
         description: VM and Container Manager
         widget:
           type: proxmox
-          url: https://mariner.home.arpa:8006
+          url: https://{{ infra_hosts.proxmox }}.{{ network.internal_domain }}:8006
           username: "{{ vault_api_keys.proxmox_homepage_user }}"
           password: "{{ vault_api_keys.proxmox_homepage_password }}"
     - Pihole:
@@ -51,11 +51,11 @@
           key: "{{ vault_api_keys.pihole }}"
     - TrueNAS:
         icon: truenas.png
-        href: http://oddesy.home.arpa
+        href: https://truenas.{{ network.domain_name }}
         description: Network storage management
         widget:
           type: truenas
-          url: http://oddesy.home.arpa
+          url: http://{{ infra_hosts.truenas }}.{{ network.internal_domain }}
           key: "{{ vault_api_keys.truenas }}"
           enablePools: true
     - Telus Router:
@@ -70,7 +70,7 @@
 - Media:
     - Jellyfin:
         icon: jellyfin.png
-        href: http://jellyfin.home.arpa:8096
+        href: https://jellyfin.{{ network.domain_name }}
         description: Watch movies and TV shows.
         widget:
           type: jellyfin
@@ -82,7 +82,7 @@
           showEpisodeNumber: true
     - Radarr:
         icon: radarr.png
-        href: http://servarr.home.arpa:7878/
+        href: https://radarr.{{ network.domain_name }}
         description: Movie management
         widget:
           type: radarr
@@ -90,7 +90,7 @@
           key: "{{ vault_api_keys.radarr }}"
     - Sonarr:
         icon: sonarr.png
-        href: http://servarr.home.arpa:8989/
+        href: https://sonarr.{{ network.domain_name }}
         description: TV series management
         widget:
           type: sonarr
@@ -98,7 +98,7 @@
           key: "{{ vault_api_keys.sonarr }}"
     - Prowlarr:
         icon: prowlarr.png
-        href: http://servarr.home.arpa:9696/
+        href: https://prowlarr.{{ network.domain_name }}
         description: Managing the other Managers
         widget:
           type: prowlarr
@@ -106,7 +106,7 @@
           key: "{{ vault_api_keys.prowlarr }}"
     - QBittorrent:
         icon: qbittorrent.png
-        href: http://qbittorrent.home.arpa:8080
+        href: https://qbittorrent.{{ network.domain_name }}
         widget:
           type: qbittorrent
           url: http://qbittorrent.home.arpa:8080
@@ -129,7 +129,7 @@
         href: http://brother-dcp7065dn.home.arpa/
     - Immich:
         icon: immich.svg
-        href: http://immich.home.arpa:2283/
+        href: https://immich.{{ network.domain_name }}
         description: Photo Management
         widget:
           type: immich
@@ -138,7 +138,7 @@
           version: 2
     - Paperless:
         icon: paperless-ngx.svg
-        href: http://paperless.home.arpa/
+        href: https://paperless.{{ network.domain_name }}
         description: Document Management
         widget:
           type: paperlessngx

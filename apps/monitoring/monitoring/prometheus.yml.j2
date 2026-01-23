@@ -26,7 +26,7 @@ scrape_configs:
   - job_name: 'pve'
     static_configs:
       - targets:
-          - mariner.home.arpa
+          - {{ infra_hosts.proxmox }}.{{ network.internal_domain }}
     metrics_path: /pve
     params:
       module: [default]

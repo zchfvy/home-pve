@@ -1,0 +1,8 @@
+---
+- name: Enable certbot timer
+  become: true
+  ansible.builtin.systemd:
+    name: certbot-renew.timer
+    state: started
+    enabled: true
+    daemon_reload: true

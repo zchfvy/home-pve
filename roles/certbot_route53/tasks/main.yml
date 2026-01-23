@@ -1,0 +1,88 @@
+---
+# Certbot with Route53 DNS-01 challenge
+
+- name: Install certbot and Route53 plugin
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - certbot
+      - python3-certbot-dns-route53
+    state: present
+    update_cache: true
+
+- name: Create AWS credentials directory
+  become: true
+  ansible.builtin.file:
+    path: /root/.aws
+    state: directory
+    mode: "0700"
+
+- name: Configure AWS credentials for certbot
+  become: true
+  ansible.builtin.template:
+    src: aws_credentials.j2
+    dest: /root/.aws/credentials
+    mode: "0600"
+
+- name: Check if certificate already exists
+  become: true
+  ansible.builtin.stat:
+    path: "{{ certbot_cert_path }}/{{ certbot_domain }}/fullchain.pem"
+  register: cert_exists
+
+- name: Obtain certificate (wildcard + apex)
+  become: true
+  ansible.builtin.command:
+    cmd: >
+      certbot certonly
+      --dns-route53
+      --dns-route53-propagation-seconds 60
+      --non-interactive
+      --agree-tos
+      --email {{ certbot_email }}
+      -d {{ certbot_domain }}
+      {% if certbot_wildcard %}-d *.{{ certbot_domain }}{% endif %}
+      {% if certbot_staging %}--staging{% endif %}
+      -v
+  when: not cert_exists.stat.exists
+  register: certbot_result
+  changed_when: "'Successfully received certificate' in certbot_result.stdout"
+
+- name: Create certbot renewal systemd timer
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/certbot-renew.timer
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Certbot renewal timer
+
+      [Timer]
+      OnCalendar=*-*-* 00,12:00:00
+      RandomizedDelaySec=3600
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+
+- name: Create certbot renewal service
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/certbot-renew.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Certbot renewal
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/certbot renew --quiet --deploy-hook "systemctl reload nginx"
+  notify: Enable certbot timer
+
+- name: Ensure certbot timer is enabled
+  become: true
+  ansible.builtin.systemd:
+    name: certbot-renew.timer
+    state: started
+    enabled: true
+    daemon_reload: true

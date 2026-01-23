@@ -1,5 +1,8 @@
 - name: Setup Monitoring Stack
   hosts: monitoring
+  vars:
+    domain_name: "{{ network.domain_name }}"
+    internal_domain: "{{ network.internal_domain }}"
   roles:
     - role: docker
     - role: docker_compose
@@ -8,3 +11,32 @@
         compose_app_dir: /srv/monitoring
         compose_src: ./monitoring/
         compose_env_src: ./monitoring/.env
+
+  tasks:
+    - name: Template Gatus configuration
+      ansible.builtin.template:
+        src: ./monitoring/gatus.yml.j2
+        dest: /srv/monitoring/gatus.yml
+        mode: "0644"
+      notify: Restart monitoring stack
+
+    - name: Template Prometheus configuration
+      ansible.builtin.template:
+        src: ./monitoring/prometheus.yml.j2
+        dest: /srv/monitoring/prometheus.yml
+        mode: "0644"
+      notify: Restart monitoring stack
+
+    - name: Configure Grafana Proxmox dashboard
+      ansible.builtin.replace:
+        path: /srv/monitoring/grafana/provisioning/dashboards/proxmox.json
+        regexp: '__PROXMOX_NODE__'
+        replace: "{{ infra_hosts.proxmox }}"
+      notify: Restart monitoring stack
+
+  handlers:
+    - name: Restart monitoring stack
+      become: true
+      community.docker.docker_compose_v2:
+        project_src: /srv/monitoring
+        state: restarted

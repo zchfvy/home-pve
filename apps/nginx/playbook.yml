@@ -3,6 +3,18 @@
   vars:
     domain_name: "{{ network.domain_name }}"
     internal_domain: "{{ network.internal_domain }}"
+    ssl_enabled: true
+    ssl_cert_path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+    ssl_key_path: "/etc/letsencrypt/live/{{ domain_name }}/privkey.pem"
+
+  roles:
+    - role: certbot_route53
+      vars:
+        certbot_email: "{{ vault_certbot.email }}"
+        certbot_domain: "{{ domain_name }}"
+        certbot_wildcard: true
+        aws_route53_access_key: "{{ vault_aws.route53_access_key }}"
+        aws_route53_secret_key: "{{ vault_aws.route53_secret_key }}"
 
   tasks:
     - name: Install nginx

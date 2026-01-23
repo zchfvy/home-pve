@@ -23,7 +23,7 @@ endpoints:
   # Media Services
   - name: Jellyfin
     group: Media
-    url: http://jellyfin.home.arpa:8096
+    url: http://jellyfin.{{ network.internal_domain }}:8096
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -33,7 +33,7 @@ endpoints:
 
   - name: Radarr
     group: Media
-    url: http://servarr.home.arpa:7878
+    url: http://servarr.{{ network.internal_domain }}:7878
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -42,7 +42,7 @@ endpoints:
 
   - name: Sonarr
     group: Media
-    url: http://servarr.home.arpa:8989
+    url: http://servarr.{{ network.internal_domain }}:8989
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -51,7 +51,7 @@ endpoints:
 
   - name: Prowlarr
     group: Media
-    url: http://servarr.home.arpa:9696
+    url: http://servarr.{{ network.internal_domain }}:9696
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -60,7 +60,7 @@ endpoints:
 
   - name: qBittorrent
     group: Media
-    url: http://qbittorrent.home.arpa:8080
+    url: http://qbittorrent.{{ network.internal_domain }}:8080
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -70,7 +70,7 @@ endpoints:
   # Applications
   - name: Immich
     group: Applications
-    url: http://immich.home.arpa:2283/api/server/ping
+    url: http://immich.{{ network.internal_domain }}:2283/api/server/ping
     interval: 60s
     conditions:
       - "[STATUS] == 200"
@@ -79,7 +79,7 @@ endpoints:
 
   - name: Paperless
     group: Applications
-    url: http://paperless.home.arpa
+    url: http://paperless.{{ network.internal_domain }}
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -88,7 +88,7 @@ endpoints:
 
   - name: Portal
     group: Applications
-    url: http://portal.home.arpa:3000
+    url: http://portal.{{ network.internal_domain }}:3000
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -98,7 +98,7 @@ endpoints:
   # Infrastructure
   - name: Proxmox
     group: Infrastructure
-    url: https://mariner.home.arpa:8006
+    url: https://{{ infra_hosts.proxmox }}.{{ network.internal_domain }}:8006
     interval: 60s
     client:
       insecure: true
@@ -109,7 +109,7 @@ endpoints:
 
   - name: Pi-hole
     group: Infrastructure
-    url: http://pihole.home.arpa/admin
+    url: http://pihole.{{ network.internal_domain }}/admin
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -118,7 +118,7 @@ endpoints:
 
   - name: TrueNAS
     group: Infrastructure
-    url: http://oddesy.home.arpa
+    url: http://{{ infra_hosts.truenas }}.{{ network.internal_domain }}
     interval: 60s
     conditions:
       - "[STATUS] < 400"
@@ -127,7 +127,7 @@ endpoints:
 
   - name: Nginx
     group: Infrastructure
-    url: http://nginx.home.arpa/health
+    url: http://nginx.{{ network.internal_domain }}/health
     interval: 30s
     conditions:
       - "[STATUS] == 200"

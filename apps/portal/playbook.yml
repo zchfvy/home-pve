@@ -1,5 +1,8 @@
 - name: Setup Homepage
   hosts: portal
+  vars:
+    domain_name: "{{ network.domain_name }}"
+    internal_domain: "{{ network.internal_domain }}"
   roles:
     - role: systemd_service
       vars:
@@ -10,7 +13,7 @@
         service_workdir: /srv/homepage
         service_exec: /root/.nvm/nvm-exec pnpm start
         service_environment:
-          - "HOMEPAGE_ALLOWED_HOSTS=portal.home.arpa:3000"
+          - "HOMEPAGE_ALLOWED_HOSTS=portal.{{ internal_domain }}:3000,portal.{{ domain_name }},portal.{{ internal_domain }}"
           - "NODE_VERSION=v23.11.0"
 
   tasks:
@@ -50,3 +53,18 @@
         src: '{{ item.src }}'
       with_community.general.filetree: './homepage/'
       when: item.state == 'file'
+      notify: Restart homepage
+
+    - name: Ensure homepage is running
+      become: true
+      ansible.builtin.systemd:
+        name: homepage
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart homepage
+      become: true
+      ansible.builtin.systemd:
+        name: homepage
+        state: restarted

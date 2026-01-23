@@ -49,7 +49,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "pve_cpu_usage_ratio{id=\"node/mariner\"} * 100",
+          "expr": "pve_cpu_usage_ratio{id=\"node/__PROXMOX_NODE__\"} * 100",
           "refId": "A"
         }
       ],
@@ -88,7 +88,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "pve_memory_usage_bytes{id=\"node/mariner\"} / pve_memory_size_bytes{id=\"node/mariner\"} * 100",
+          "expr": "pve_memory_usage_bytes{id=\"node/__PROXMOX_NODE__\"} / pve_memory_size_bytes{id=\"node/__PROXMOX_NODE__\"} * 100",
           "refId": "A"
         }
       ],
@@ -127,7 +127,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "pve_disk_usage_bytes{id=\"node/mariner\"} / pve_disk_size_bytes{id=\"node/mariner\"} * 100",
+          "expr": "pve_disk_usage_bytes{id=\"node/__PROXMOX_NODE__\"} / pve_disk_size_bytes{id=\"node/__PROXMOX_NODE__\"} * 100",
           "refId": "A"
         }
       ],
@@ -164,7 +164,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "pve_uptime_seconds{id=\"node/mariner\"}",
+          "expr": "pve_uptime_seconds{id=\"node/__PROXMOX_NODE__\"}",
           "refId": "A"
         }
       ],
